@@ -1,0 +1,12 @@
+dependencies:
+- name: kube-prometheus
+  repository: https://charts.bitnami.com/bitnami
+  version: 8.1.7
+- name: grafana
+  repository: https://charts.bitnami.com/bitnami
+  version: 8.2.8
+- name: rabbitmq
+  repository: https://charts.bitnami.com/bitnami
+  version: 10.3.5
+digest: sha256:7422b0e498830db44d72860d6d7838f62760a5c80e593930520d6287c2a2f79f
+generated: "2022-09-23T10:24:47.627751-06:00"

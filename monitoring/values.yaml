@@ -1,0 +1,4 @@
+
+enableGrafana : true
+enablePrometheus : true
+enableRabbit : true
