@@ -6,8 +6,8 @@ elasticsearch:
     kibanaEnabled: true
   metrics:
     enabled: true
-  serviceMonitor:
-    enabled: true
+    serviceMonitor:
+      enabled: true
 
   # Nodos master Elastic
   master:
@@ -57,3 +57,33 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+
+mariadb:
+  architecture: replication
+
+  # Nodo primario
+  primary:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+      requests:
+        cpu: "25m"
+        memory: "128Mi"
+      
+
+  # Nodos secundarios
+  secondary:  
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "512Mi"
+      requests:
+        cpu: "25m"
+        memory: "128Mi"
+
+  metrics: 
+    enabled: true
+    serviceMonitor: 
+      enabled: true
