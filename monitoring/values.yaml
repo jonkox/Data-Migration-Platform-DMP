@@ -1,4 +1,25 @@
-
 enableGrafana : true
 enablePrometheus : true
 enableRabbit : true
+
+rabbitmq:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+kube-prometheus:
+  fullnameOverride: "main"
+
+grafana:
+  datasources:
+    secretDefinition:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://main-prometheus:9090/
+        access: proxy
+        isDefault: true
+  admin:
+    password: "11111111"
