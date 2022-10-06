@@ -64,6 +64,12 @@ elasticsearch:
       restAPI: 32500
       transport: 32200
 
+  kibana:
+    service:
+      type: NodePort
+      nodePorts:
+        http: 31500
+
 mariadb:
   architecture: replication
 
