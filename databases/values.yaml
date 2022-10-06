@@ -57,6 +57,12 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+  
+  service: 
+    type: NodePort
+    nodePorts:
+      restAPI: 32500
+      transport: 32200
 
 mariadb:
   architecture: replication
@@ -70,7 +76,10 @@ mariadb:
       requests:
         cpu: "25m"
         memory: "128Mi"
-      
+    service: 
+      type: NodePort
+      nodePorts:
+        mysql: 32100
 
   # Nodos secundarios
   secondary:  
@@ -82,6 +91,10 @@ mariadb:
       requests:
         cpu: "25m"
         memory: "128Mi"
+    service: 
+      type: NodePort
+      nodePorts:
+        mysql: 32150
 
   metrics: 
     enabled: true
