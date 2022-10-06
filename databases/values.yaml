@@ -1,4 +1,4 @@
-enableElastic : true
+enableElastic : false
 enableMaria : true
 
 elasticsearch:
@@ -13,9 +13,9 @@ elasticsearch:
   master:
     replicaCount: 1
     resources:
-      limits: 
-        cpu: 500m
-        memory: 512Mi
+      limits: {}
+        # cpu: 500m
+        # memory: 512Mi
       requests:
         cpu: 25m
         memory: 128Mi
@@ -27,7 +27,7 @@ elasticsearch:
     resources:
       limits:
         cpu: 1000m
-        memory: 1024Mi
+        memory: 2048Mi
       requests:
         cpu: 25m
         memory: 256Mi
@@ -39,7 +39,7 @@ elasticsearch:
     resources:
       limits:
         cpu: 500m
-        memory: 512Mi
+        memory: 2048Mi
       requests:
         cpu: 25m
         memory: 128Mi
@@ -61,12 +61,39 @@ elasticsearch:
 mariadb:
   architecture: replication
 
+  auth:
+    ## @param auth.rootPassword Password for the `root` user. Ignored if existing secret is provided.
+    ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-the-root-password-on-first-run
+    ##
+    rootPassword: "rootroot"
+    ## @param auth.database Name for a custom database to create
+    ## ref: https://github.com/bitnami/containers/blob/main/bitnami/mariadb/README.md#creating-a-database-on-first-run
+    ##
+    database: my_database
+    ## @param auth.username Name for a custom user to create
+    ## ref: https://github.com/bitnami/containers/blob/main/bitnami/mariadb/README.md#creating-a-database-user-on-first-run
+    ##
+    username: "root"
+    ## @param auth.password Password for the new user. Ignored if existing secret is provided
+    ##
+    password: "rootroot"
+    ## @param auth.replicationUser MariaDB replication user
+    ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-up-a-replication-cluster
+    ##
+    replicationUser: replicator
+    ## @param auth.replicationPassword MariaDB replication user password. Ignored if existing secret is provided
+    ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-up-a-replication-cluster
+    ##
+    replicationPassword: "rootroot"
+    ## @param auth.existingSecret Use existing secret for password details (`auth.rootPassword`, `auth.password`, `auth.replicationPassword` will be ignored and picked up from this secret). The secret has to contain the keys `mariadb-root-password`, `mariadb-replication-password` and `mariadb-password`
+    ##
+
   # Nodo primario
   primary:
     resources:
-      limits:
-        cpu: "500m"
-        memory: "256Mi"
+      limits: {}
+        # cpu: "500m"
+        # memory: "256Mi"
       requests:
         cpu: "25m"
         memory: "128Mi"
@@ -74,11 +101,11 @@ mariadb:
 
   # Nodos secundarios
   secondary:  
-    replicaCount: 2
+    replicaCount: 1
     resources:
-      limits:
-        cpu: "1000m"
-        memory: "512Mi"
+      limits: {}
+      #   cpu: "1000m"
+      #   memory: "512Mi"
       requests:
         cpu: "25m"
         memory: "128Mi"

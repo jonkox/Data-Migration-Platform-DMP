@@ -2,7 +2,7 @@ import re
 
 import json
 
-with open("ejemplo01.json") as archivo:
+with open("regexApp/ejemplo01.json") as archivo:
     datos = json.load(archivo)
 
 print(datos["job_id"])
