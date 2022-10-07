@@ -5,9 +5,9 @@ elasticsearch:
   global:
     kibanaEnabled: true
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
-      enabled: true
+      enabled: false
 
   # Nodos master Elastic
   master:
@@ -25,7 +25,7 @@ elasticsearch:
   data:
     replicaCount: 2
     resources:
-      limits:
+      limits: 
         cpu: 1000m
         memory: 1024Mi
       requests:
@@ -37,7 +37,7 @@ elasticsearch:
   coordinating:
     replicaCount: 1
     resources:
-      limits:
+      limits: 
         cpu: 500m
         memory: 512Mi
       requests:
@@ -50,7 +50,7 @@ elasticsearch:
     enabled: false
     replicaCount: 2
     resources:
-      limits:
+      limits: 
         cpu: 25m
         memory: 256Mi
       requests:
@@ -64,7 +64,7 @@ mariadb:
   # Nodo primario
   primary:
     resources:
-      limits:
+      limits: 
         cpu: "500m"
         memory: "256Mi"
       requests:
@@ -76,7 +76,7 @@ mariadb:
   secondary:  
     replicaCount: 2
     resources:
-      limits:
+      limits: 
         cpu: "1000m"
         memory: "512Mi"
       requests:
@@ -84,6 +84,6 @@ mariadb:
         memory: "128Mi"
 
   metrics: 
-    enabled: true
+    enabled: false
     serviceMonitor: 
-      enabled: true
+      enabled: false
