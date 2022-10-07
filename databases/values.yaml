@@ -20,6 +20,8 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
 
   # Nodos de datos Elastic
   data:
@@ -32,7 +34,9 @@ elasticsearch:
         cpu: 25m
         memory: 256Mi
     heapSize: 384m
-  
+    readinessProbe:
+      enabled: false
+
   # Nodos de Coordinación Elastic
   coordinating:
     replicaCount: 1
@@ -44,6 +48,8 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
 
   # Nodos de ingest Elastic
   ingest:
@@ -57,7 +63,9 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
-  
+    readinessProbe:
+      enabled: false
+
   service: 
     type: NodePort
     nodePorts:
