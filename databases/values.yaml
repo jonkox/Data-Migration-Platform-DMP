@@ -22,6 +22,8 @@ elasticsearch:
     heapSize: 128m
     readinessProbe:
       enabled: false
+    livenessProbe:
+      enabled: false
 
   # Nodos de datos Elastic
   data:
@@ -35,6 +37,8 @@ elasticsearch:
         memory: 256Mi
     heapSize: 384m
     readinessProbe:
+      enabled: false
+    livenessProbe:
       enabled: false
 
   # Nodos de Coordinación Elastic
@@ -50,6 +54,8 @@ elasticsearch:
     heapSize: 128m
     readinessProbe:
       enabled: false
+    livenessProbe:
+      enabled: false
 
   # Nodos de ingest Elastic
   ingest:
@@ -64,6 +70,8 @@ elasticsearch:
         memory: 128Mi
     heapSize: 128m
     readinessProbe:
+      enabled: false
+    livenessProbe:
       enabled: false
 
   service: 
