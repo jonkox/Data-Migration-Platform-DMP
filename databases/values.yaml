@@ -20,6 +20,10 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
 
   # Nodos de datos Elastic
   data:
@@ -32,7 +36,11 @@ elasticsearch:
         cpu: 25m
         memory: 256Mi
     heapSize: 384m
-  
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
+
   # Nodos de Coordinación Elastic
   coordinating:
     replicaCount: 1
@@ -44,6 +52,10 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
 
   # Nodos de ingest Elastic
   ingest:
@@ -57,6 +69,22 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
+
+  service: 
+    type: NodePort
+    nodePorts:
+      restAPI: 32500
+      transport: 32200
+
+  kibana:
+    service:
+      type: NodePort
+      nodePorts:
+        http: 31500
 
 mariadb:
   architecture: replication
@@ -70,7 +98,10 @@ mariadb:
       requests:
         cpu: "25m"
         memory: "128Mi"
-      
+    service: 
+      type: NodePort
+      nodePorts:
+        mysql: 32100
 
   # Nodos secundarios
   secondary:  
@@ -82,6 +113,10 @@ mariadb:
       requests:
         cpu: "25m"
         memory: "128Mi"
+    service: 
+      type: NodePort
+      nodePorts:
+        mysql: 32150
 
   metrics: 
     enabled: false

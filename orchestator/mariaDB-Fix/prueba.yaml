@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pruebita
+  labels:
+    app: pruebita
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pruebita
+  template:
+    metadata:
+      labels:
+        app: pruebita
+    spec:
+      containers:
+      - name: sisisi
+        image: deansf/pruebamria
