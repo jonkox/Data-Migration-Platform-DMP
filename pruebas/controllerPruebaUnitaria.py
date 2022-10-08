@@ -73,4 +73,6 @@ def consumirCola():
 
 crearCola()
 producir()
-consumirCola()
+
+# Se comento para poder probar la app como consumidor
+#consumirCola()
