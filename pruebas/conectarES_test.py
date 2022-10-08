@@ -1,8 +1,7 @@
 import elasticsearch
-
 from elasticsearch import Elasticsearch
 
-es = Elasticsearch(['http://localhost:9200/'], verify_certs=True)
+# Crea la instancia de un cliente
+es = Elasticsearch('http://localhost:32500')
 
-if not es.ping():
-    raise ValueError("Connection failed")
+print(es.info())
