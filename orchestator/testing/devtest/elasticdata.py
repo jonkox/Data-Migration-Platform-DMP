@@ -8,6 +8,12 @@ ELASTICPASS = "" #os.getenv("ELASTICPASS")
 
 elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT)
 
+elasticClient.indices.delete(index="jobs")
+elasticClient.indices.delete(index="groups")
+
+if(not (elasticClient.indices.exists(index=["jobs"]))):
+    elasticClient.indices.create(index="jobs")
+
 doc = {
     "job_id" : "nuevojob",
     "status": "new",
@@ -16,7 +22,7 @@ doc = {
         {
             "type": "elasticsearch",
             "name": "destination_es",
-            "url": "localhost",
+            "url": "http://localhost",
             "port": "32500",
             "usuario": "",
             "password": ""
@@ -27,7 +33,7 @@ doc = {
             "url": "localhost",
             "port": "32150",
             "usuario": "root",
-            "password": "DnJI32HtsK"
+            "password": "ceryur1E8f"
         }
     ],
     "control_data_source": "destination_es",
