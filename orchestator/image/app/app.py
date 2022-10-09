@@ -1,16 +1,30 @@
+from ast import Pass
 from math import ceil
 from enum import Enum
 from time import sleep
 from elasticsearch import Elasticsearch
 import elastic_transport
 import mariadb
+import pika
+import json
 import os
 
 # Environmental Variables
+
+# Elasticsearch
 ELASTICHOST = "http://localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICUSER = "" #os.getenv("ELASTICUSER")
 ELASTICPASS = "" #os.getenv("ELASTICPASS")
+
+# RabbitMQ
+RABBITHOST = "localhost" #os.getenv("RABBITHOST")
+RABBITPORT = "30100" #os.getenv("RABBITPORT")
+RABBITUSER = "user" #os.getenv("RABBITUSER")
+RABBITPASS = "DUWITCIDkvRQBP7e" #os.getenv("RABBITPASS")
+RABBITQUEUENAME = "orchestrator"
+
+# MariaDB
 MARIADBNAME = "my_database" #os.getenv("MARIADBNAME")
 
 # Enumeration for type of elasticsearch database
@@ -29,11 +43,28 @@ class Orchestrator:
     __mariaClient = None
     __jobDocument = None
     __jobDocumentId = None
+    __queue = None
     
     # First of all we want to connect to the elasticsearch job database
     # to wait for jobs
     def __init__(self):
         self.connectElastic(ELASTICUSER,ELASTICPASS,ELASTICHOST,ELASTICPORT)
+    
+    # Method to start RabbitMQ Queue
+    def initQueue(self):
+        rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
+        rabbitParameters = pika.ConnectionParameters(
+            host=RABBITHOST,
+            port=RABBITPORT,
+            credentials=rabbitUserPass
+        )
+        try:
+            self.__queue = pika.BlockingConnection(rabbitParameters).channel()
+        except pika.exceptions.AMQPConnectionError:
+            # We can't continue without a queue to publish our results
+            raise Exception("Error: Couldn't connect to RabbitMQ")
+        self.__queue.queue_declare(queue=RABBITQUEUENAME)
+            
 
     # Simple method used to connect to an elasticsearch database
     def connectElastic(self,user,password,host,port,type=ElasticClientType.JOBS):
@@ -100,6 +131,9 @@ class Orchestrator:
         if(not (self.__elasticClientJobs.indices.exists(index=["groups"]))):
             self.__elasticClientJobs.indices.create(index="groups")
         
+        # We need a queue, so we start it here
+        self.initQueue()
+
         # Making sure pod stays up by providing a infinite loop
         while True:
             sleep(1) # To avoid to filling up elasticsearch with requests, we wait some time
@@ -203,6 +237,7 @@ class Orchestrator:
                 "groud_id" : self.__jobDocument["job_id"] + "-" + str(self.__groupSize*offset) 
             }
             self.__elasticClientDest.index(index="groups",document=groupDocument)
+            self.__queue.basic_publish(routing_key=RABBITQUEUENAME, body=json.dumps(groupDocument), exchange='')
         
         self.closeElastic()
 
