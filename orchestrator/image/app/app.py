@@ -1,4 +1,3 @@
-from ast import Pass
 from math import ceil
 from enum import Enum
 from time import sleep
@@ -11,6 +10,26 @@ import os
 
 # Environmental Variables
 
+#------------------- PODS -------------------
+
+# Elasticsearch
+ELASTICHOST = os.getenv("ELASTICHOST")
+ELASTICPORT = os.getenv("ELASTICPORT")
+ELASTICUSER = os.getenv("ELASTICUSER")
+ELASTICPASS = os.getenv("ELASTICPASS")
+
+# RabbitMQ
+RABBITHOST = os.getenv("RABBITHOST")
+RABBITPORT = os.getenv("RABBITPORT")
+RABBITUSER = os.getenv("RABBITUSER")
+RABBITPASS = os.getenv("RABBITPASS")
+RABBITQUEUENAME = os.getenv("RABBITQUEUENAME")
+
+# MariaDB
+MARIADBNAME = os.getenv("MARIADBNAME")
+
+#------------------ TESTING -----------------
+"""
 # Elasticsearch
 ELASTICHOST = "http://localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
@@ -22,10 +41,10 @@ RABBITHOST = "localhost" #os.getenv("RABBITHOST")
 RABBITPORT = "30100" #os.getenv("RABBITPORT")
 RABBITUSER = "user" #os.getenv("RABBITUSER")
 RABBITPASS = "DUWITCIDkvRQBP7e" #os.getenv("RABBITPASS")
-RABBITQUEUENAME = "orchestrator"
+RABBITQUEUENAME = "orchestrator" #os.getenv("RABBITQUEUENAME")
 
 # MariaDB
-MARIADBNAME = "my_database" #os.getenv("MARIADBNAME")
+MARIADBNAME = "my_database" #os.getenv("MARIADBNAME")"""
 
 # Enumeration for type of elasticsearch database
 # DEST -> "control_data_source" found in a job document

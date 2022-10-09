@@ -7,9 +7,9 @@ ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICPASS = "" #os.getenv("ELASTICPASS")
 
 elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT)
-
+"""
 elasticClient.indices.delete(index="jobs")
-elasticClient.indices.delete(index="groups")
+elasticClient.indices.delete(index="groups")"""
 
 if(not (elasticClient.indices.exists(index=["jobs"]))):
     elasticClient.indices.create(index="jobs")
@@ -22,16 +22,16 @@ doc = {
         {
             "type": "elasticsearch",
             "name": "destination_es",
-            "url": "http://localhost",
-            "port": "32500",
+            "url": "http://databases-elasticsearch-master-hl.default.svc.cluster.local",
+            "port": "9200",
             "usuario": "",
             "password": ""
         },
         {
             "type" : "mysql",
             "name": "people_db",
-            "url": "localhost",
-            "port": "32150",
+            "url": "databases-mariadb-primary",
+            "port": "3306",
             "usuario": "root",
             "password": "ceryur1E8f"
         }
