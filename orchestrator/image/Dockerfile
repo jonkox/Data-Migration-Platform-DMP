@@ -14,6 +14,7 @@ RUN ./mariadb_repo_setup \
    --mariadb-server-version="mariadb-10.6"
 
 RUN apt-get install -y libmariadb3 libmariadb-dev
-RUN pip install mariadb
+
+RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["python","-u","./app.py"]

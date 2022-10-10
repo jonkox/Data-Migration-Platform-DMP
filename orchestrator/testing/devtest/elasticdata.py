@@ -6,7 +6,7 @@ ELASTICHOST = "localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICPASS = "" #os.getenv("ELASTICPASS")
 
-elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT)
+elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic","Av6gG4ZBIpBYgdeZ"))
 """
 elasticClient.indices.delete(index="jobs")
 elasticClient.indices.delete(index="groups")"""
@@ -24,8 +24,8 @@ doc = {
             "name": "destination_es",
             "url": "http://databases-elasticsearch-master-hl.default.svc.cluster.local",
             "port": "9200",
-            "usuario": "",
-            "password": ""
+            "usuario": "elastic",
+            "password": "Av6gG4ZBIpBYgdeZ"
         },
         {
             "type" : "mysql",
@@ -33,7 +33,7 @@ doc = {
             "url": "databases-mariadb-primary",
             "port": "3306",
             "usuario": "root",
-            "password": "ceryur1E8f"
+            "password": "LVOIjwRfuU"
         }
     ],
     "control_data_source": "destination_es",

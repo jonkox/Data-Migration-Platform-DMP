@@ -131,6 +131,8 @@ class Orchestrator:
                 + self.__jobDocument["job_id"]
             )
             self.failedFile()
+            return True
+        return False
 
     # Method for closing MariaDB       
     def closeMariadb(self):
@@ -201,12 +203,13 @@ class Orchestrator:
             self.failedFile()
             return True
         
-        self.connectMariadb(
+        if(self.connectMariadb(
             source["usuario"],
             source["password"],
             source["url"],
             source["port"]
-        )
+        )):
+            return True
 
         try:
             self.__groupSize = int(self.__jobDocument["source"]["grp_size"])
@@ -220,8 +223,17 @@ class Orchestrator:
             return True
 
         cursor = self.__mariaClient.cursor()
+        
+        try:
+            cursor.execute("SELECT Count(1) FROM persona")
+        except mariadb.ProgrammingError:
+            print(
+                "Error: root.source.expression is not working as it should, document -> " \
+                + self.__jobDocument["job_id"]
+            )
+            self.failedFile()
+            self.closeMariadb()
 
-        cursor.execute("SELECT Count(1) FROM persona")
         self.__groupCount = ceil(cursor.fetchone()[0]/self.__groupSize)
 
         cursor.close()

@@ -4,7 +4,7 @@ from random import randint
 
 conn = mariadb.connect(
         user="root",
-        password="ceryur1E8f",
+        password="LVOIjwRfuU",
         host="localhost",
         port=32100,
         database="my_database"
