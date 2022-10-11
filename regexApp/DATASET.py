@@ -136,11 +136,16 @@ def dataset():
         id = peopleData[i][2]
         provincia = peopleData[i][3]
         cur.execute("INSERT INTO persona(cedula,nombre,provincia) VALUES (" + "'" + cedula + "'" + ", " + "'" + nombre + "'" + ", " + "'" +provincia + "'" + ")")
+    
+    #Commiting updates
+    conn.commit()
 
     #Add car to table car
     for i in range(length):
         cur.execute("INSERT INTO car(id,owner,description) VALUES (" + "'" + str(carData[i][0]) + "'" + ", " + "'" + str(i+1) + "'" + ", " + "'" +carData[i][2] + "'" + ")")
-    
+
+    #Commiting updates
+    conn.commit()
 
     #Get info to verify
     cur.execute("SELECT * FROM persona")
