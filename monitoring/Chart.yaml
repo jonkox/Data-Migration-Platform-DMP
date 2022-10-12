@@ -20,4 +20,3 @@ dependencies:
     version: "10.3.5"
     repository: https://charts.bitnami.com/bitnami
     condition: enableRabbit
-
