@@ -1,4 +1,4 @@
-enableElastic : false
+enableElastic : true
 enableMaria : true
 
 elasticsearch:
@@ -13,13 +13,17 @@ elasticsearch:
   master:
     replicaCount: 1
     resources:
-      limits: {}
-        # cpu: 500m
-        # memory: 512Mi
+      limits: 
+        cpu: 500m
+        memory: 512Mi
       requests:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
 
   # Nodos de datos Elastic
   data:
@@ -27,23 +31,31 @@ elasticsearch:
     resources:
       limits:
         cpu: 1000m
-        memory: 2048Mi
+        memory: 1024Mi
       requests:
         cpu: 25m
         memory: 256Mi
     heapSize: 384m
-  
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
+
   # Nodos de Coordinación Elastic
   coordinating:
     replicaCount: 1
     resources:
       limits:
         cpu: 500m
-        memory: 2048Mi
+        memory: 512Mi
       requests:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
 
   # Nodos de ingest Elastic
   ingest:
@@ -57,58 +69,54 @@ elasticsearch:
         cpu: 25m
         memory: 128Mi
     heapSize: 128m
+    readinessProbe:
+      enabled: false
+    livenessProbe:
+      enabled: false
+
+  service: 
+    type: NodePort
+    nodePorts:
+      restAPI: 32500
+      transport: 32200
+
+  kibana:
+    service:
+      type: NodePort
+      nodePorts:
+        http: 31500
 
 mariadb:
   architecture: replication
 
-  auth:
-    ## @param auth.rootPassword Password for the `root` user. Ignored if existing secret is provided.
-    ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-the-root-password-on-first-run
-    ##
-    rootPassword: "rootroot"
-    ## @param auth.database Name for a custom database to create
-    ## ref: https://github.com/bitnami/containers/blob/main/bitnami/mariadb/README.md#creating-a-database-on-first-run
-    ##
-    database: my_database
-    ## @param auth.username Name for a custom user to create
-    ## ref: https://github.com/bitnami/containers/blob/main/bitnami/mariadb/README.md#creating-a-database-user-on-first-run
-    ##
-    username: "root"
-    ## @param auth.password Password for the new user. Ignored if existing secret is provided
-    ##
-    password: "rootroot"
-    ## @param auth.replicationUser MariaDB replication user
-    ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-up-a-replication-cluster
-    ##
-    replicationUser: replicator
-    ## @param auth.replicationPassword MariaDB replication user password. Ignored if existing secret is provided
-    ## ref: https://github.com/bitnami/containers/tree/main/bitnami/mariadb#setting-up-a-replication-cluster
-    ##
-    replicationPassword: "rootroot"
-    ## @param auth.existingSecret Use existing secret for password details (`auth.rootPassword`, `auth.password`, `auth.replicationPassword` will be ignored and picked up from this secret). The secret has to contain the keys `mariadb-root-password`, `mariadb-replication-password` and `mariadb-password`
-    ##
-
   # Nodo primario
   primary:
     resources:
-      limits: {}
-        # cpu: "500m"
-        # memory: "256Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
       requests:
         cpu: "25m"
         memory: "128Mi"
-      
+    service: 
+      type: NodePort
+      nodePorts:
+        mysql: 32100
 
   # Nodos secundarios
   secondary:  
-    replicaCount: 1
+    replicaCount: 2
     resources:
-      limits: {}
-      #   cpu: "1000m"
-      #   memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "512Mi"
       requests:
         cpu: "25m"
         memory: "128Mi"
+    service: 
+      type: NodePort
+      nodePorts:
+        mysql: 32150
 
   metrics: 
     enabled: true
