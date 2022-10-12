@@ -223,9 +223,11 @@ class Orchestrator:
             return True
 
         cursor = self.__mariaClient.cursor()
-        
+
+        countingQuery ="SELECT Count(1) FROM (" + self.__jobDocument["source"]["expression"] + ") subquery"
+
         try:
-            cursor.execute("SELECT Count(1) FROM persona")
+            cursor.execute(countingQuery)
         except mariadb.ProgrammingError:
             print(
                 "Error: root.source.expression is not working as it should, document -> " \
@@ -233,6 +235,7 @@ class Orchestrator:
             )
             self.failedFile()
             self.closeMariadb()
+            return True
 
         self.__groupCount = ceil(cursor.fetchone()[0]/self.__groupSize)
 
