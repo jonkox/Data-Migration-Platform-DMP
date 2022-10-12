@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+  labels:
+    app: orchest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orchest
+  template:
+    metadata:
+      labels:
+        app: orchest
+    spec:
+      containers:
+      - name: orchestrator
+        image: deansf/orchestrator
+        env:
+          - name: "ELASTICHOST"
+            value: {{ .Values.orchestrator.elastichost }}
+          - name: "ELASTICPORT"
+            value: {{ .Values.orchestrator.elasticport | toString }}
+          - name: "ELASTICUSER"
+            value: {{ .Values.orchestrator.elasticuser }}
+          - name: "ELASTICPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-elasticsearch
+                key: elasticsearch-password
+                optional: false
+          - name: "RABBITHOST"
+            value: {{ .Values.orchestrator.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.orchestrator.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.orchestrator.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "RABBITQUEUENAME"
+            value: {{ .Values.orchestrator.rabbitqueuename }}
+          - name: "MARIADBNAME"
+            value: {{ .Values.orchestrator.mariadbname }}
+          
