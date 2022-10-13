@@ -6,7 +6,7 @@ ELASTICHOST = "localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICPASS = "" #os.getenv("ELASTICPASS")
 
-elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic","Av6gG4ZBIpBYgdeZ"))
+elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic","5WKt5ymymHVmJsxQ"))
 """
 elasticClient.indices.delete(index="jobs")
 elasticClient.indices.delete(index="groups")"""
@@ -46,6 +46,6 @@ doc = {
 
 string = "nuevojob"
 
-for i in range(0,1):
+for i in range(0,50):
     doc["job_id"] = "nuevojob" + str(random.randint(0,1000))
     elasticClient.index(index="jobs", document=doc)

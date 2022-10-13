@@ -17,11 +17,14 @@ spec:
       containers:
       - name: orchestrator
         image: deansf/orchestrator
+        ports:
+          - name: metrics
+            containerPort: 6942
         env:
           - name: "ELASTICHOST"
             value: {{ .Values.orchestrator.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.orchestrator.elasticport | toString }}
+            value: {{ .Values.orchestrator.elasticport }}
           - name: "ELASTICUSER"
             value: {{ .Values.orchestrator.elasticuser }}
           - name: "ELASTICPASS"
@@ -46,4 +49,16 @@ spec:
             value: {{ .Values.orchestrator.rabbitqueuename }}
           - name: "MARIADBNAME"
             value: {{ .Values.orchestrator.mariadbname }}
+          - name: "MARIADBHOST"
+            value: {{ .Values.orchestrator.mariadbhost }}
+          - name: "MARIADBPORT"
+            value: {{ .Values.orchestrator.mariadbport }}
+          - name: "MARIADBUSER"
+            value: {{ .Values.orchestrator.mariadbuser }}
+          - name: "MARIADBPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-mariadb
+                key: mariadb-root-password
+                optional: false
           
