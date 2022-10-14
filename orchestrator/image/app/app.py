@@ -85,17 +85,17 @@ class Orchestrator:
         )
 
         self.__totalProcessingTime = Gauge(
-            'total_processing_time', 
+            'orchestrator_total_processing_time', 
             'Total amount of time elapsed when processing'
         )
 
         self.__avgProcessingTime = Gauge(
-            'avg_processing_time', 
+            'orchestrator_avg_processing_time', 
             'Average amount of time elapsed when processing'
         )
 
         self.__NumberOfProcessedGroups = Gauge(
-            'number_processed_groups', 
+            'orchestrator_number_processed_groups', 
             'Number of Jobs process by orchestrator'
         )
         
