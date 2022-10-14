@@ -1,4 +1,4 @@
-orchestrator:
+regexProcessor:
   # Elasticsearch
   elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
   elasticport: "\"9200\""
@@ -8,7 +8,5 @@ orchestrator:
   rabbithost: "monitoring-rabbitmq-headless"
   rabbitport: "\"5672\""
   rabbituser: "user"
-  rabbitqueuename: "orchestrator"
-
-  # Mariadb
-  mariadbname: "my_database"
+  sourcequeue: "regex_queue"
+  destqueue: "ready"

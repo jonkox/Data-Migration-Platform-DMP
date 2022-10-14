@@ -7,7 +7,7 @@ from random import randint
 
 
 # Global variables
-length = 1000
+length = 2400
 plates = []
 cars = []
 nombresList = []
@@ -94,7 +94,7 @@ def dataset():
     try:
         conn = mariadb.connect(
             user="root",
-            password="JC8OQiUXbG",
+            password="iy5PtSwCIo",
             host="127.0.0.1",
             port=32100,
             database="my_database")

@@ -1,29 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orchestrator
+  name: regex-processor
   labels:
-    app: orchest
+    app: regex
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: orchest
+      app: regex
   template:
     metadata:
       labels:
-        app: orchest
+        app: regex
     spec:
       containers:
-      - name: orchestrator
-        image: deansf/orchestrator
+      - name: regex-processor
+        image: jonkox/regex
+        ports:
+          - name: metrics
+            containerPort: 6943
         env:
           - name: "ELASTICHOST"
-            value: {{ .Values.orchestrator.elastichost }}
+            value: {{ .Values.regexProcessor.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.orchestrator.elasticport | toString }}
+            value: {{ .Values.regexProcessor.elasticport | toString }}
           - name: "ELASTICUSER"
-            value: {{ .Values.orchestrator.elasticuser }}
+            value: {{ .Values.regexProcessor.elasticuser }}
           - name: "ELASTICPASS"
             valueFrom:
               secretKeyRef:
@@ -31,19 +34,18 @@ spec:
                 key: elasticsearch-password
                 optional: false
           - name: "RABBITHOST"
-            value: {{ .Values.orchestrator.rabbithost }}
+            value: {{ .Values.regexProcessor.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.orchestrator.rabbitport }}
+            value: {{ .Values.regexProcessor.rabbitport }}
           - name: "RABBITUSER"
-            value: {{ .Values.orchestrator.rabbituser }}
+            value: {{ .Values.regexProcessor.rabbituser }}
           - name: "RABBITPASS"
             valueFrom:
               secretKeyRef:
                 name: monitoring-rabbitmq
                 key: rabbitmq-password
                 optional: false
-          - name: "RABBITQUEUENAME"
-            value: {{ .Values.orchestrator.rabbitqueuename }}
-          - name: "MARIADBNAME"
-            value: {{ .Values.orchestrator.mariadbname }}
-          
+          - name: "SOURCEQUEUE"
+            value: {{ .Values.regexProcessor.sourcequeue }}
+          - name: "DESTQUEUE"
+            value: {{ .Values.regexProcessor.destqueue }}

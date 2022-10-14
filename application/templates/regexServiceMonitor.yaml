@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: regex-metrics
+  labels:
+    app: regex
+spec:
+  endpoints:
+  - port: metrics
+  selector:
+    matchLabels:
+      app: regex

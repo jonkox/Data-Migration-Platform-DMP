@@ -1,5 +1,5 @@
 {
-    "job_id": "job606",
+    "job_id": "nuevojob",
     "status": "hola",
     "msg": "",
     "data_sources": [
@@ -32,7 +32,7 @@
     "source": {
         "data_source": "people_db",
         "expression": "SELECT * FROM persona ORDER BY cedula",
-        "grp_size": "100"
+        "grp_size": "10"
     },
     "stages" : [
         {
