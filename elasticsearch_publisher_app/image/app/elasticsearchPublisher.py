@@ -197,6 +197,7 @@ class ElasticsearchPublisher:
         try:
             connection = pika.BlockingConnection(rabbitConnectionParameters)
             channel = connection.channel()
+            channel.queue_declare(queue = RABBITQUEUENAME)
             channel.basic_qos(prefetch_count=1)
         except pika.exceptions.AMQPConnectionError:
             raise Exception("Error: Couldn't connect to RabbitMQ")
