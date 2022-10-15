@@ -73,7 +73,7 @@ class MySQLConnector:
         channelConsuming = connection.channel()
         channelConsuming.queue_declare(queue=pQueue)
         channelConsuming.basic_consume(queue=pQueue, on_message_callback= self.callback, auto_ack=False)
-
+        
         channelConsuming.start_consuming()
 
     def startProduce(self,pUser,pPass,pHost,pPort,pQueue,pMsg):
