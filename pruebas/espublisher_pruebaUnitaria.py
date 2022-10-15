@@ -9,15 +9,15 @@ from time import sleep
 
 from elasticsearch import Elasticsearch
 
-sys.path.append(os.path.join(
-        os.path.dirname(__file__), 
-        '..', 
-        'elasticsearch_publisher_app',
-        'image',
-        'app'
-    )
-)
-from elasticsearchPublisher import ElasticsearchPublisher
+# sys.path.append(os.path.join(
+#         os.path.dirname(__file__), 
+#         '..', 
+#         'elasticsearch_publisher_app',
+#         'image',
+#         'app'
+#     )
+# )
+# from elasticsearchPublisher import ElasticsearchPublisher
 
 # Class for printing colors
 class bcolors:
@@ -80,7 +80,7 @@ def createQueue():
     connection = pika.BlockingConnection(rabbitConnectionParameters)
     channel = connection.channel()
 
-    QUEUE_NAME = 'ready' 
+    QUEUE_NAME = 'espublisher' 
 
     channel.queue_declare(queue = QUEUE_NAME)
 
@@ -99,7 +99,7 @@ def regexFinishedProcess():
     connection = pika.BlockingConnection(rabbitConnectionParameters)
     channel = connection.channel()
 
-    QUEUE_NAME = 'ready' 
+    QUEUE_NAME = 'espublisher' 
 
     # Open file for testing
     localFile = os.path.join(os.path.dirname(__file__), 'msg.json')
@@ -124,8 +124,8 @@ def callback(ch, method, properties, body):
     process(ch, method)
 
 
-def createESpublisher():
-    esPublisher = ElasticsearchPublisher()
+# def createESpublisher():
+#     esPublisher = ElasticsearchPublisher()
 
 
 # -------------------- UNIT TEST PROCESS -------------------
@@ -139,4 +139,4 @@ createQueue()
 regexFinishedProcess()
 
 # 4. Initialize the Elasticsearch publisher app to start the process
-createESpublisher()
+#createESpublisher()

@@ -153,7 +153,7 @@ class ElasticsearchPublisher:
         for doc in docs:
             publishingResult = self.ESConnection.index(
                 index = publishingIndex,
-                body = doc,
+                document = doc,
             )
         
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Documents were successfully published")
