@@ -86,5 +86,42 @@ class MySQLConnector:
         msg2 =pMsg
         channel2.basic_publish(exchange='', routing_key=RABBITQUEUEMYSQL, body=msg2) 
         connection2.close()
+            def callback (self, ch, method, properties, body):
+        sleep(1)   
+        json_msg = json.loads(body)
+        self.work(json_msg,body)
+
+        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+        print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process finished")
+        
+    def callback (self, ch, method, properties, body):
+        sleep(1)   
+        json_msg = json.loads(body)
+        self.work(json_msg,body)
+
+        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+        print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process finished")
+
+
+    def work(self, pMsg, pBody):
+        print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process started")
+
+        json_job = self.ElasticClient.search(index='jobs',size=1,query={"match":{"job_id":pMsg["job_id"]}}) 
+        idDocumento = json_job["hits"]["hits"][0]["_id"] 
+        loadJson = self.ElasticClient.get(index="jobs", id=idDocumento)["_source"]
+        groupId=pMsg["groud_id"] 
+        jobid = pMsg["job_id"]    
+        #_____________________Datos para hacer consulta_______________________
+        expresion = loadJson["source"]["expression"] #El select que debe ejecutar en la base de datos    
+        groupSize = loadJson["source"]["grp_size"]   
+        startRow = groupId[self.counterWord(groupId):]  
+        query = expresion+" LIMIT "+startRow+","+groupSize
+        #____________________Consultar y transformar__________________________  
+        json_output = json.dumps(self.transformacion (query, (groupSize,)))
+        documentUpdate = self.ElasticClient.search(index='groups',size=1,query={"match":{"groud_id":groupId}})
+        #____________________Inicio de la actualizacion___________________________
+        self.update(documentUpdate,jobid,groupId,json_output)
+        #___________________Publicamos en la segunda cola________________________
+        self.startProduce(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUEMYSQL,pBody)
 
 MySQLConnector()       
