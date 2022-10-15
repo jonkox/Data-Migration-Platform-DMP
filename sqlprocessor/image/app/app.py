@@ -1,11 +1,35 @@
+from prometheus_client import Gauge,start_http_server
 from elasticsearch import Elasticsearch
-import re as Regex
 import elastic_transport
+from time import time
+import re as Regex
 import mariadb
 import json
 import pika
+import os
 
+# RabbitMQ
+RABBITHOST = os.getenv("RABBITHOST")
+RABBITPORT = os.getenv("RABBITPORT")
+RABBITUSER = os.getenv("RABBITUSER")
+RABBITPASS = os.getenv("RABBITPASS")
+RABBITCONSUMEQUEUE = os.getenv("RABBITCONSUMEQUEUE")
+RABBITPUBLISHQUEUE = os.getenv("RABBITPUBLISHQUEUE")
 
+# Elastic
+ELASTICHOST = os.getenv("ELASTICHOST")
+ELASTICPORT = os.getenv("ELASTICPORT")
+ELASTICUSER = os.getenv("ELASTICUSER")
+ELASTICPASS = os.getenv("ELASTICPASS")
+
+# MariaDB
+MARIADBNAME = os.getenv("MARIADBNAME")
+MARIADBHOST = os.getenv("MARIADBHOST")
+MARIADBPORT = os.getenv("MARIADBPORT")
+MARIADBUSER = os.getenv("MARIADBUSER")
+MARIADBPASS = os.getenv("MARIADBPASS")
+
+"""
 # RabbitMQ
 RABBITHOST = "localhost" #os.getenv("RABBITHOST")
 RABBITPORT = "30100" #os.getenv("RABBITPORT")
@@ -26,7 +50,16 @@ MARIADBHOST = "localhost" #os.getenv("MARIADBHOST")
 MARIADBPORT = "32100" #os.getenv("MARIADBPORT")
 MARIADBUSER = "root" #os.getenv("MARIADBUSER")
 MARIADBPASS = "IteAgY6fBV" #os.getenv("MARIADBPASS")
+"""
+# Enum for colors
+class bcolors:
+    OK      = '\033[92m'    #GREEN
+    WARNING = '\033[93m'    #YELLOW
+    FAIL    = '\033[91m'    #RED
+    GRAY    = '\033[90m'
+    RESET   = '\033[0m'     #RESET COLOR
 
+# Class containing the programs logic
 class SQLProcessor:
     __consumerQueue = None
     __publishQueue = None
@@ -37,9 +70,15 @@ class SQLProcessor:
     __currentDocId = None
     __currentExpression = None
     __currentSqltransform = None
+    __time = 0
+    __processedGroups = 0
+    __totalTimeMetric = None
+    __avgTimeMetric = None
+    __processedGroupsMetric = None
 
     def __init__(self):
         self.initQueues()
+        self.initMetrics()
         self.connectElastic(
             ELASTICUSER,
             ELASTICPASS,
@@ -79,17 +118,11 @@ class SQLProcessor:
             )
         except mariadb.OperationalError:
             # We raise an exception because the process 
-            # can't continue without a place to look get
+            # can't continue without a place to get
             # information to publish in elastic
             raise Exception("Error: Couldn't connect to MariaDB database")
 
-    def getFromElastic(self,message):
-        search = self.__elasticClient.search(index="jobs",size=1,query={"match" : {"job_id" : message["job_id"]}})
-        self.__currentJob = search["hits"]["hits"][0]["_source"]
-        search = self.__elasticClient.search(index="groups",size=1,query={"match" : {"group_id" : message["group_id"]}})
-        self.__currentDoc = search["hits"]["hits"][0]["_source"]
-        self.__currentDocId = search["hits"]["hits"][0]["_id"]
-
+    # Method to initialize consuming queue and the publishing queue
     def initQueues(self):
         rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
         rabbitParameters = pika.ConnectionParameters(
@@ -102,23 +135,54 @@ class SQLProcessor:
         try:
             self.__consumerQueue = pika.BlockingConnection(rabbitParameters).channel()
             self.__publishQueue = pika.BlockingConnection(rabbitParameters).channel()
+            self.__consumerQueue.basic_qos(prefetch_count=1)
         except pika.exceptions.AMQPConnectionError:
-            # We can't continue without a queue to publish our results
+            # We can't continue without a queue to get data from 
+            # and to publish our results
             raise Exception("Error: Couldn't connect to RabbitMQ")
         self.__consumerQueue.queue_declare(queue=RABBITCONSUMEQUEUE)
         self.__publishQueue.queue_declare(queue=RABBITPUBLISHQUEUE)
 
-        self.__consumerQueue.basic_consume(queue=RABBITCONSUMEQUEUE, on_message_callback=self.consume, auto_ack=True)
+        self.__consumerQueue.basic_consume(queue=RABBITCONSUMEQUEUE, on_message_callback=self.consume, auto_ack=False)
 
-    def consume(self, ch, method, properties, msg):
-        message = json.loads(msg)
-        self.getFromElastic(message)
-        self.getExpression()
-        self.processExpression()
-        self.changeDocs()
-        self.__publishQueue.basic_publish(routing_key=RABBITPUBLISHQUEUE, body=msg, exchange='')
-        print("Group finished -> " + self.__currentDoc["group_id"])
+    # Method to initialize Prometheus metrics
+    def initMetrics(self):
+        self.__totalTimeMetric = Gauge(
+            'sqlprocessor_total_processing_time', 
+            'Total amount of time elapsed when processing'
+        )
+        self.__avgTimeMetric = Gauge(
+            'sqlprocessor_avg_processing_time', 
+            'Average amount of time elapsed when processing'
+        )
+        self.__processedGroupsMetric = Gauge(
+            'sqlprocessor_number_processed_groups', 
+            'Number of Groups process by SQL Processor'
+        )
+        self.__totalTimeMetric.set(0)
+        self.__avgTimeMetric.set(0)
+        self.__processedGroupsMetric.set(0)
+
+    # This method retrieves the job and group document from elastic with the
+    # recieved job_id and group_id of the queue
+    def getFromElastic(self,message):
+        try:
+            search = self.__elasticClient.search(index="jobs",size=1,query={"match" : {"job_id" : message["job_id"]}})
+            self.__currentJob = search["hits"]["hits"][0]["_source"]
+            search = self.__elasticClient.search(index="groups",size=1,query={"match" : {"group_id" : message["group_id"]}})
+            self.__currentDoc = search["hits"]["hits"][0]["_source"]
+            self.__currentDocId = search["hits"]["hits"][0]["_id"]
+        except IndexError:
+            # if we don't find any document, we can't continue
+            print(
+                bcolors.FAIL + "Error:" + bcolors.RESET + " Didn't find job or group -> " + bcolors.WARNING + "group_id:" + 
+                message["group_id"] + " -> job_id: " + message["job_id"] + bcolors.RESET
+            )
+            return True
+        return False
     
+    # From the retrieved documents, we get the expression we need
+    # to run for each JSON in the docs field
     def getExpression(self):
         sqltransform = None
         transform = None
@@ -130,8 +194,9 @@ class SQLProcessor:
         
         if(transform == None):
             print(
-                "Error: No transform in stages -> " + 
-                self.__currentDoc["group_id"]
+                # If we didn't find a transform stage, we can't continue
+                bcolors.FAIL + "Error:" + bcolors.RESET + " No transform in stages -> " + 
+                bcolors.WARNING + self.__currentDoc["group_id"] + bcolors.RESET
             )
             return True
         
@@ -141,29 +206,34 @@ class SQLProcessor:
                 break
 
         if(sqltransform == None):
+            # if we didn't find a sql_transform type of transformation, we can't continue
             print(
-                "Error: No sql_transform type of transformation in the transform stage -> " + 
-                self.__currentDoc["group_id"]
+                bcolors.FAIL + "Error:" + bcolors.RESET + " No sql_transform type of transformation in the transform stage -> " + 
+                + bcolors.WARNING + self.__currentDoc["group_id"] + bcolors.RESET
             )
             return True
         
         self.__currentExpression = sqltransform["expression"]
         self.__currentSqltransform = sqltransform
         return False
-        
+    
+    # before executing the expression obtain in the last step, we need to change some
+    # variables in it found on "fields_mapping" and we need to put which table
+    # we are getting data from.
     def processExpression(self):
         fieldsRegex = "(?<=%{)\\b(?!table\\b)\\b(?!doc_field\\b)[a-zA-Z0-9_]*(?=}%)"
         fields = Regex.findall(fieldsRegex,self.__currentExpression)
         self.__currentExpression = self.__currentExpression.replace(
             "%{table}%",
             self.__currentSqltransform["table"]
-            )
+        )
 
         for field in fields:
             if(field == "table" or field == "doc_field"):
                 continue
             if(field not in self.__currentSqltransform["fields_mapping"]):
-                print("Error: missing field_mappings")
+                # Without fields_mappings, we can't replace variables
+                print(bcolors.FAIL + "Error: " + bcolors.RESET + "missing field_mappings")
                 return True
             self.__currentExpression = self.__currentExpression.replace(
                 "%{"+ field +"}%",
@@ -172,9 +242,15 @@ class SQLProcessor:
 
         return False
 
+    # last step in the SQL Processor, here we get
+    # the docs list and execute the expression to add
+    # a new field with the retrieve data.
     def changeDocs(self):
         docField = self.__currentSqltransform["doc_field"]
         docs = self.__currentDoc["docs"]
+
+        # There wasn't any specific way to get the field name
+        # so, we get it from the table we are searching in.
         fieldname = Regex.findall(
             "(?<=SELECT )[a-zA-Z0-9_]*",
             self.__currentExpression
@@ -188,21 +264,51 @@ class SQLProcessor:
                         str(doc[docField])
                     )
                 )
-                doc[fieldname] = cursor.fetchone()[0]
+                result = cursor.fetchone()
+                if(len(result) != 0):
+                    doc[fieldname] = result[0]
         except mariadb.ProgrammingError:
+            # There is the possibility the expression fails, so we handle that error
             print(
-                "Error: root.stages[name=transform].transformation[type=sql_transform].expression \
-                failed, document -> " + self.__currentDoc["group_id"]
+                bcolors.FAIL + "Error: " + bcolors.RESET + "root.stages[name=transform].transformation[type=sql_transform].expression \
+                failed, document -> " + bcolors.WARNING + self.__currentDoc["group_id"] + bcolors.RESET
             )
             return True
+        
         
         self.__currentDoc["docs"] = docs
         self.__elasticClient.index(index="groups",id=self.__currentDocId,document=self.__currentDoc)
         return False
 
+    # Method used as callback for the consume
+    def consume(self, ch, method, properties, msg):
+        startTime = time()
+        message = json.loads(msg)
+        if(self.getFromElastic(message)):
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+            return
+        if(self.getExpression()):
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+            return
+        if(self.processExpression()):
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+            return
+        if(self.changeDocs()):
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+            return
+        self.__publishQueue.basic_publish(routing_key=RABBITPUBLISHQUEUE, body=msg, exchange='')
+        print(bcolors.OK + "Group finished:" + bcolors.RESET + " -> " + bcolors.GRAY + self.__currentDoc["group_id"] + bcolors.RESET)
 
+        self.__time += (time() - startTime)
+        self.__processedGroups += 1
+        self.__processedGroupsMetric.set(self.__processedGroups)
+        self.__totalTimeMetric.set(self.__time)
+        self.__avgTimeMetric.set(self.__time/self.__processedGroups)
+
+        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
 
     def startProcess(self):
+        start_http_server(6941)
         self.__consumerQueue.start_consuming()
 
 processor = SQLProcessor()

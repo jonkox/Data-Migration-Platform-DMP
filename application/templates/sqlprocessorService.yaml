@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: sqlprocessor-metrics-service
+  labels:
+    app: sql-proc
+spec:
+  selector:
+    app: sql-proc
+  ports:
+  - name: metrics
+    port: 6941

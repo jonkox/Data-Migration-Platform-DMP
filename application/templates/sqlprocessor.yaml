@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sqlprocessor
+  labels:
+    app: sql-proc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sql-proc
+  template:
+    metadata:
+      labels:
+        app: sql-proc
+    spec:
+      containers:
+      - name: sqlprocessor
+        image: deansf/sqlprocessor
+        ports:
+          - name: metrics
+            containerPort: 6941
+        env:
+          - name: "ELASTICHOST"
+            value: {{ .Values.SQLProcessor.elastichost }}
+          - name: "ELASTICPORT"
+            value: {{ .Values.SQLProcessor.elasticport }}
+          - name: "ELASTICUSER"
+            value: {{ .Values.SQLProcessor.elasticuser }}
+          - name: "ELASTICPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-elasticsearch
+                key: elasticsearch-password
+                optional: false
+          - name: "RABBITHOST"
+            value: {{ .Values.SQLProcessor.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.SQLProcessor.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.SQLProcessor.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "RABBITCONSUMEQUEUE"
+            value: {{ .Values.SQLProcessor.rabbitconsumequeue }}
+          - name: "RABBITPUBLISHQUEUE"
+            value: {{ .Values.SQLProcessor.rabbitpublishqueue }}
+          - name: "MARIADBNAME"
+            value: {{ .Values.SQLProcessor.mariadbname }}
+          - name: "MARIADBHOST"
+            value: {{ .Values.SQLProcessor.mariadbhost }}
+          - name: "MARIADBPORT"
+            value: {{ .Values.SQLProcessor.mariadbport }}
+          - name: "MARIADBUSER"
+            value: {{ .Values.SQLProcessor.mariadbuser }}
+          - name: "MARIADBPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-mariadb
+                key: mariadb-root-password
+                optional: false
+          

@@ -8,7 +8,7 @@ RABBITHOST = "localhost" #os.getenv("RABBITHOST")
 RABBITPORT = "30100" #os.getenv("RABBITPORT")
 RABBITUSER = "user" #os.getenv("RABBITUSER")
 RABBITPASS = "XQnpNkb23Z5RqAly" #os.getenv("RABBITPASS")
-RABBITCONSUMEQUEUE = "mysqlprocessor" #os.getenv("RABBITQUEUENAME")
+RABBITCONSUMEQUEUE = "mysqlconnector" #os.getenv("RABBITQUEUENAME")
 RABBITPUBLISHQUEUE = "sqlprocessor" #os.getenv("RABBITQUEUENAME")
 
 # Elastic
@@ -17,7 +17,7 @@ ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICPASS = "5WKt5ymymHVmJsxQ" #os.getenv("ELASTICPASS")
 
 document = {
-    "job_id" : "unid1",
+    "job_id" : "unid",
     "group_id" : "unid1-0"
 }
 
@@ -32,7 +32,9 @@ rabbitParameters = pika.ConnectionParameters(
 
 cola = pika.BlockingConnection(rabbitParameters).channel()
 cola.queue_declare(queue=RABBITCONSUMEQUEUE)
-cola.basic_publish(routing_key=RABBITCONSUMEQUEUE, body=json.dumps(document), exchange= '')
+
+for i in range(0,20000):
+    cola.basic_publish(routing_key=RABBITCONSUMEQUEUE, body=json.dumps(document), exchange= '')
 
 def elasticData():
     elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic",ELASTICPASS))
@@ -58,7 +60,7 @@ def elasticData():
 
     job = {
         "job_id" : "unid1",
-        "status": "new",
+        "status": "In-process",
         "msg": "",
         "data_sources": [
             {
