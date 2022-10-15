@@ -24,6 +24,7 @@ RABBITPASS = 'iX4rMustwltDPp7Y'
 RABBITQUEUENAME = 'ready'
 """
 
+# Elasticsearch
 ELASTICHOST = os.getenv("ELASTICHOST")
 ELASTICPORT = os.getenv("ELASTICPORT")
 ELASTICUSER = os.getenv("ELASTICUSER")
@@ -92,7 +93,7 @@ class ElasticsearchPublisher:
         try:
             self.ESConnection.info()
         except:
-            raise Exception("Elastic connection was not succesful")
+            raise Exception("Error: Couldn't connect to Elasticsearch")
     
 
     def getConfigDoc(self, ESConnection, job_id):
@@ -123,30 +124,35 @@ class ElasticsearchPublisher:
         # Start timer for metrics
         startingTime = time()
 
-        # Obtener el group_id del mensaje recibido
+        # Get group_id from the document that was received
         group_id = jsonObject["group_id"]
+
+        # Get job_id from the document that was received
         job_id = jsonObject["job_id"]
 
-        # Buscar en el indice groups y obtener el documento del grupo identificado por group_id 
-        groupDoc_body = self.searchGroup(group_id)
+        try:
+            # Search in 'groups' index and get document identified by group_id
+            groupDoc_body = self.searchGroup(group_id)
 
-        # Buscar en el indice jobs y obtener el documento del job representado por job_id
-        jobDoc_body = self.searchJob(job_id)
+            # Search in 'jobs' index and get document identified by job_id
+            jobDoc_body = self.searchJob(job_id)
 
-        # Almacenar los documentos del campo "docs" 
+        except IndexError or KeyError:
+            return False  # Process wasn't successful 
+
+        # Store documents for publishing
         docs = groupDoc_body["docs"]
 
         # ------------ PUBLISH DOCUMENT -------------
-        # Search doc to get publishing index name
+        # Search configuration doc to get publishing index name
         configDoc = self.getConfigDoc(self.ESConnection, job_id)
 
         # Name of index where the documents will be published
         publishingIndex = configDoc["stages"][2]["index_name"] 
 
         for doc in docs:
-            response = self.ESConnection.index(
+            publishingResult = self.ESConnection.index(
                 index = publishingIndex,
-                id = group_id,
                 body = doc,
             )
         
@@ -157,6 +163,7 @@ class ElasticsearchPublisher:
 
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Document was successfully deleted from index")
 
+
         # ---------- Prometheus metrics --------------
         self.time += (time() - startingTime)
         self.processedGroups = self.processedGroups + 1
@@ -164,17 +171,20 @@ class ElasticsearchPublisher:
         self.totalProcessingTime.set(self.time)
         self.avgProcessingTime.set(self.time/self.processedGroups)
 
+        return True     # Process was successfully finished
 
     def callback(self, ch, method, properties, body):
     
         json_object = json.loads(body)
-        self.workForPod(json_object)
-        
-        # This notifies that the message was received succesfully
-        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
-        print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Process finished")
 
+        if self.workForPod(json_object):
+            # This notifies that the message was received succesfully
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+            print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Process finished")
+        else:
+            print(f"{bcolors.FAIL} ES Publisher: {bcolors.RESET} Error in process, waiting for next message")
     
+
     def connectRabbitmq(self, user, password, host, port, queueName):
         # Connect to rabbtimq
         rabbitUserPass = pika.PlainCredentials(user, password)
@@ -185,11 +195,15 @@ class ElasticsearchPublisher:
             credentials= rabbitUserPass
         )
 
-        connection = pika.BlockingConnection(rabbitConnectionParameters)
-        channel = connection.channel()
-        channel.basic_qos(prefetch_count=1)
-        channel.basic_consume(queue= RABBITQUEUENAME, auto_ack=False, on_message_callback=self.callback)
+        try:
+            connection = pika.BlockingConnection(rabbitConnectionParameters)
+            channel = connection.channel()
+            channel.basic_qos(prefetch_count=1)
+        except pika.exceptions.AMQPConnectionError:
+            raise Exception("Error: Couldn't connect to RabbitMQ")
 
+        channel.basic_consume(queue= RABBITQUEUENAME, auto_ack=False, on_message_callback=self.callback)
         channel.start_consuming()
 
-ElasticsearchPublisher()
+
+#ElasticsearchPublisher()

@@ -6,4 +6,4 @@ COPY app/. .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python","-u","./app.py"]
+CMD ["python","-u","./elasticsearchPublisher.py"]
