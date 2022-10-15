@@ -45,7 +45,6 @@ class MySQLConnector:
         self.connectDbElastic(ELASTICHOST,ELASTICPORT,ELASTICUSER,ELASTICPASS)
         self.startConsume(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUENAME)
 
-
     def connectDbElastic(self,pHost,pPort,pUser,pPass):
         try:
             self.ElasticClient = Elasticsearch(
@@ -86,13 +85,6 @@ class MySQLConnector:
         msg2 =pMsg
         channel2.basic_publish(exchange='', routing_key=RABBITQUEUEMYSQL, body=msg2) 
         connection2.close()
-            def callback (self, ch, method, properties, body):
-        sleep(1)   
-        json_msg = json.loads(body)
-        self.work(json_msg,body)
-
-        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
-        print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process finished")
         
     def callback (self, ch, method, properties, body):
         sleep(1)   
@@ -101,7 +93,6 @@ class MySQLConnector:
 
         ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
         print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process finished")
-
 
     def work(self, pMsg, pBody):
         print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process started")
@@ -124,7 +115,7 @@ class MySQLConnector:
         #___________________Publicamos en la segunda cola________________________
         self.startProduce(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUEMYSQL,pBody)
         
-            def update(self, pDoc, pJobId, pGrpId, pJson):
+    def update(self, pDoc, pJobId, pGrpId, pJson):
         try:
             idHit = pDoc["hits"]["hits"][0]["_id"]
             data = {"job_id": pJobId, "group_id": pGrpId, 'docs':pJson} #Se annade del fiel docs
