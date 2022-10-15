@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: elasticsearch-publisher
+  name: elasticsearch_publisher
   labels:
     app: espublisher
 spec:
@@ -15,15 +15,15 @@ spec:
         app: espublisher
     spec:
       containers:
-      - name: elasticsearch-publisher
+      - name: elasticsearch_publisher
         image: ihuskyx/espublisher
         env:
           - name: "ELASTICHOST"
-            value: {{ .Values.elasticsearch-publisher.elastichost }}
+            value: {{ .Values.elasticsearch_publisher.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.elasticsearch-publisher.elasticport | toString }}
+            value: {{ .Values.elasticsearch_publisher.elasticport | toString }}
           - name: "ELASTICUSER"
-            value: {{ .Values.elasticsearch-publisher.elasticuser }}
+            value: {{ .Values.elasticsearch_publisher.elasticuser }}
           - name: "ELASTICPASS"
             valueFrom:
               secretKeyRef:
@@ -31,11 +31,11 @@ spec:
                 key: elasticsearch-password
                 optional: false
           - name: "RABBITHOST"
-            value: {{ .Values.elasticsearch-publisher.rabbithost }}
+            value: {{ .Values.elasticsearch_publisher.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.elasticsearch-publisher.rabbitport }}
+            value: {{ .Values.elasticsearch_publisher.rabbitport }}
           - name: "RABBITUSER"
-            value: {{ .Values.elasticsearch-publisher.rabbituser }}
+            value: {{ .Values.elasticsearch_publisher.rabbituser }}
           - name: "RABBITPASS"
             valueFrom:
               secretKeyRef:
@@ -43,4 +43,4 @@ spec:
                 key: rabbitmq-password
                 optional: false
           - name: "RABBITQUEUENAME"
-            value: {{ .Values.elasticsearch-publisher.rabbitqueuename }}
+            value: {{ .Values.elasticsearch_publisher.rabbitqueuename }}
