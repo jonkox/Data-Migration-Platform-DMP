@@ -9,7 +9,7 @@ from time import sleep,time
 
 # ------------ ENVIRONMENT  VARIABLES FOR CONNECTIONS -------
 
-
+""""
 # Used for testing without environment variables
 
 ELASTICHOST = "http://localhost"#os.getenv("ELASTICHOST")
@@ -22,19 +22,20 @@ RABBITPORT = '30100'
 RABBITUSER = 'user'
 RABBITPASS = 'iX4rMustwltDPp7Y'
 RABBITQUEUENAME = 'ready'
+"""
 
+# Elasticsearch
+ELASTICHOST = os.getenv("ELASTICHOST")
+ELASTICPORT = os.getenv("ELASTICPORT")
+ELASTICUSER = os.getenv("ELASTICUSER")
+ELASTICPASS = os.getenv("ELASTICPASS")
 
-# ELASTICHOST = os.getenv("ELASTICHOST")
-# ELASTICPORT = os.getenv("ELASTICPORT")
-# ELASTICUSER = os.getenv("ELASTICUSER")
-# ELASTICPASS = os.getenv("ELASTICPASS")
-
-# # RabbitMQ
-# RABBITHOST = os.getenv("RABBITHOST")
-# RABBITPORT = os.getenv("RABBITPORT")
-# RABBITUSER = os.getenv("RABBITUSER")
-# RABBITPASS = os.getenv("RABBITPASS")
-# RABBITQUEUENAME = os.getenv("RABBITQUEUENAME")
+# RabbitMQ
+RABBITHOST = os.getenv("RABBITHOST")
+RABBITPORT = os.getenv("RABBITPORT")
+RABBITUSER = os.getenv("RABBITUSER")
+RABBITPASS = os.getenv("RABBITPASS")
+RABBITQUEUENAME = os.getenv("RABBITQUEUENAME")
 
 
 # Class for printing colors
