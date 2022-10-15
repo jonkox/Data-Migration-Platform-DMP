@@ -1,0 +1,22 @@
+{
+    "job_id": "job-606",
+    "group_id": "job606-100",
+    "docs": [
+        {
+            "cedula": "206150538",
+            "nombre": "Nereo Campos",
+            "id": "658",
+            "provincia": "Cartago",
+            "canton": "Cartago",
+            "description": "Toyota Corollacross BWC-166, Blanco Perlado"
+        },
+        {
+            "cedula": "369570589",
+            "nombre": "Juan Perez",
+            "id": "589",
+            "provincia": "Alajuela",
+            "canton": "Alajuela",
+            "description": "Honda CRV HUJ-987, Dorado"
+        }
+    ]
+}
