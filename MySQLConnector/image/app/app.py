@@ -141,5 +141,4 @@ class MySQLConnector:
             control += 1
             if i == "-":
                 return control
-
 MySQLConnector()       
