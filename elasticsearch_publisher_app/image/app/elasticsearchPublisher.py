@@ -206,4 +206,4 @@ class ElasticsearchPublisher:
         channel.start_consuming()
 
 
-#ElasticsearchPublisher()
+ElasticsearchPublisher()
