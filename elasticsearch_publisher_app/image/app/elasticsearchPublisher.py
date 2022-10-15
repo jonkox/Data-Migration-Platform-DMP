@@ -9,7 +9,7 @@ from time import sleep,time
 
 # ------------ ENVIRONMENT  VARIABLES FOR CONNECTIONS -------
 
-"""
+
 # Used for testing without environment variables
 
 ELASTICHOST = "http://localhost"#os.getenv("ELASTICHOST")
@@ -22,20 +22,19 @@ RABBITPORT = '30100'
 RABBITUSER = 'user'
 RABBITPASS = 'iX4rMustwltDPp7Y'
 RABBITQUEUENAME = 'ready'
-"""
 
-# Elasticsearch
-ELASTICHOST = os.getenv("ELASTICHOST")
-ELASTICPORT = os.getenv("ELASTICPORT")
-ELASTICUSER = os.getenv("ELASTICUSER")
-ELASTICPASS = os.getenv("ELASTICPASS")
 
-# RabbitMQ
-RABBITHOST = os.getenv("RABBITHOST")
-RABBITPORT = os.getenv("RABBITPORT")
-RABBITUSER = os.getenv("RABBITUSER")
-RABBITPASS = os.getenv("RABBITPASS")
-RABBITQUEUENAME = os.getenv("RABBITQUEUENAME")
+# ELASTICHOST = os.getenv("ELASTICHOST")
+# ELASTICPORT = os.getenv("ELASTICPORT")
+# ELASTICUSER = os.getenv("ELASTICUSER")
+# ELASTICPASS = os.getenv("ELASTICPASS")
+
+# # RabbitMQ
+# RABBITHOST = os.getenv("RABBITHOST")
+# RABBITPORT = os.getenv("RABBITPORT")
+# RABBITUSER = os.getenv("RABBITUSER")
+# RABBITPASS = os.getenv("RABBITPASS")
+# RABBITQUEUENAME = os.getenv("RABBITQUEUENAME")
 
 
 # Class for printing colors
@@ -162,7 +161,6 @@ class ElasticsearchPublisher:
         deleteDocResult = self.ESConnection.delete(index="groups", id= group_id)
 
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Document was successfully deleted from index")
-
 
         # ---------- Prometheus metrics --------------
         self.time += (time() - startingTime)

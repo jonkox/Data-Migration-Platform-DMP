@@ -66,7 +66,7 @@ def kibanaPublishingSimulation():
             body = dataFromFile,
         )
 
-    print(f"{bcolors.OK} Documents were successfully published to ES index for testing {bcolors.RESET}")
+    print(f"{bcolors.OK} Documents were successfully published to ES indices for testing {bcolors.RESET}")
 
 
 def createQueue():
