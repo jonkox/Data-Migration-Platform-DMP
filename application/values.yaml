@@ -1,4 +1,4 @@
-elasticsearch-publisher:
+elasticsearchpublisher:
   # Elasticsearch
   elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
   elasticport: "\"9200\""
