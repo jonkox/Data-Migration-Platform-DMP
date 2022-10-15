@@ -123,5 +123,32 @@ class MySQLConnector:
         self.update(documentUpdate,jobid,groupId,json_output)
         #___________________Publicamos en la segunda cola________________________
         self.startProduce(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUEMYSQL,pBody)
+        
+            def update(self, pDoc, pJobId, pGrpId, pJson):
+        try:
+            idHit = pDoc["hits"]["hits"][0]["_id"]
+            data = {"job_id": pJobId, "group_id": pGrpId, 'docs':pJson} #Se annade del fiel docs
+            self.ElasticClient.index(index='groups', id=idHit,body=data) #Sobreescribo documento
+        except:
+            print("Error. Can't update")
+            
+    def transformacion (self, query, args=(), one=False):
+        self.connectDbMaria(MARIADBHOST,MARIADBPORT,MARIADBUSER,MARIADBPASS,MARIADBNAME) 
+        try:
+            cur = self.MariaClient.cursor()
+            cur.execute(query, args)
+        except mariadb.Error as error:
+            print("Error in query: {}".format(error))
+        queryResult = [dict((cur.description[i][0], value) \
+                for i, value in enumerate(row)) for row in cur.fetchall()]
+        cur.connection.close()
+        return (queryResult[0] if queryResult else None) if one else queryResult
+
+    def counterWord(self, pWord):
+        control = 0
+        for i in pWord:
+            control += 1
+            if i == "-":
+                return control
 
 MySQLConnector()       
