@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: regex-processor
+  labels:
+    app: regex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: regex
+  template:
+    metadata:
+      labels:
+        app: regex
+    spec:
+      containers:
+      - name: regex-processor
+        image: jonkox/regex
+        ports:
+          - name: metrics
+            containerPort: 6943
+        env:
+          - name: "ELASTICHOST"
+            value: {{ .Values.regexProcessor.elastichost }}
+          - name: "ELASTICPORT"
+            value: {{ .Values.regexProcessor.elasticport | toString }}
+          - name: "ELASTICUSER"
+            value: {{ .Values.regexProcessor.elasticuser }}
+          - name: "ELASTICPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-elasticsearch
+                key: elasticsearch-password
+                optional: false
+          - name: "RABBITHOST"
+            value: {{ .Values.regexProcessor.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.regexProcessor.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.regexProcessor.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "SOURCEQUEUE"
+            value: {{ .Values.regexProcessor.sourcequeue }}
+          - name: "DESTQUEUE"
+            value: {{ .Values.regexProcessor.destqueue }}

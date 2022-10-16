@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: regex-metrics-service
+  labels:
+    app: regex
+spec:
+  selector:
+    app: regex
+  ports:
+  - name: metrics
+    port: 6943

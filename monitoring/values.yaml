@@ -1,12 +1,12 @@
-enableGrafana : true
-enablePrometheus : true
+enableGrafana : False
+enablePrometheus : False
 enableRabbit : true
 
 rabbitmq:
   metrics:
     enabled: false
     serviceMonitor:
-      enabled: false
+      enabled: true
   service: 
     type: NodePort
     nodePorts:

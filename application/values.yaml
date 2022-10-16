@@ -1,3 +1,16 @@
+regexProcessor:
+  # Elasticsearch
+  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
+  elasticport: "\"9200\""
+  elasticuser: "elastic"
+
+  # RabbitMQ
+  rabbithost: "monitoring-rabbitmq-headless"
+  rabbitport: "\"5672\""
+  rabbituser: "user"
+  sourcequeue: "regex_queue"
+  destqueue: "ready"
+  
 elasticsearchpublisher:
   # Elasticsearch
   elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
