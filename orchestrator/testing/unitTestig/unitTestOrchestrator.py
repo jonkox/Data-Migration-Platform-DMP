@@ -27,8 +27,9 @@ def consume(ch, method, properties, msg):
 
 elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=(ELASTICUSER,ELASTICPASS))
 
-if(not (elasticClient.indices.exists(index=["jobs"]))):
-    elasticClient.indices.create(index="jobs")
+if((elasticClient.indices.exists(index=["jobs"]))):
+    elasticClient.indices.delete(index="jobs")
+elasticClient.indices.create(index="jobs")
 
 job0 = {
     "job_id": "job0",
@@ -272,7 +273,7 @@ queue.queue_declare(queue=RABBITQUEUENAME)
 queue.basic_consume(queue=RABBITQUEUENAME, on_message_callback=consume, auto_ack=True)
 
 
-jobs = [job2]
+jobs = [job0,job1,job2]
 
 for job in jobs:
     elasticClient.index(index="jobs", document=job)
