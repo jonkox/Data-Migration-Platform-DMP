@@ -1,4 +1,4 @@
-from tokenize import group
+from time import sleep
 from elasticsearch import Elasticsearch
 import pika
 import json
@@ -16,34 +16,26 @@ ELASTICHOST = "localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICPASS = "5WKt5ymymHVmJsxQ" #os.getenv("ELASTICPASS")
 
-document = {
-    "job_id" : "unid",
-    "group_id" : "unid1-0"
-}
+global message_number
 
-rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
-rabbitParameters = pika.ConnectionParameters(
-    heartbeat=120,
-    blocked_connection_timeout=120,
-    host=RABBITHOST,
-    port=RABBITPORT,
-    credentials=rabbitUserPass
-)
-
-cola = pika.BlockingConnection(rabbitParameters).channel()
-cola.queue_declare(queue=RABBITCONSUMEQUEUE)
-
-for i in range(0,20000):
-    cola.basic_publish(routing_key=RABBITCONSUMEQUEUE, body=json.dumps(document), exchange= '')
+def consume(ch, method, properties, msg):
+    global message_number
+    message = json.loads(msg)
+    message = json.dumps(message, indent=6, separators=(',',':'))
+    message_number += 1
+    print("\nMessage number " + str(message_number))
+    print(message)
 
 def elasticData():
     elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic",ELASTICPASS))
+    if((elasticClient.indices.exists(index=["jobs"]))):
+        elasticClient.indices.delete(index="jobs")
+    if((elasticClient.indices.exists(index=["groups"]))):
+        elasticClient.indices.delete(index="groups")
 
-    if(not (elasticClient.indices.exists(index=["jobs"]))):
-        elasticClient.indices.create(index="jobs")
-
-    if(not (elasticClient.indices.exists(index=["groups"]))):
-        elasticClient.indices.create(index="groups")
+    
+    elasticClient.indices.create(index="jobs")
+    elasticClient.indices.create(index="groups")
 
     listOfPersonas = [
         ('9-8569-2630', 'Gerardo Vargas', 1, 'Heredia'),
@@ -59,7 +51,7 @@ def elasticData():
     ]
 
     job = {
-        "job_id" : "unid1",
+        "job_id" : "job0",
         "status": "In-process",
         "msg": "",
         "data_sources": [
@@ -134,8 +126,8 @@ def elasticData():
     }
 
     group = {
-        "job_id" : "unid1",
-        "group_id" : "unid1-0",
+        "job_id" : "job0",
+        "group_id" : "job0-0",
         "docs" : []
     }
 
@@ -150,4 +142,32 @@ def elasticData():
     elasticClient.index(index="jobs", document=job)
     elasticClient.index(index="groups", document=group)
 
-#elasticData()
+message_number = 0
+
+document = {
+    "job_id" : "job0",
+    "group_id" : "job0-0"
+}
+
+
+rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
+rabbitParameters = pika.ConnectionParameters(
+    heartbeat=120,
+    blocked_connection_timeout=120,
+    host=RABBITHOST,
+    port=RABBITPORT,
+    credentials=rabbitUserPass
+)
+
+cola = pika.BlockingConnection(rabbitParameters).channel()
+cola2 = pika.BlockingConnection(rabbitParameters).channel()
+cola.queue_declare(queue=RABBITCONSUMEQUEUE)
+cola2.queue_declare(queue=RABBITPUBLISHQUEUE)
+cola2.basic_consume(queue=RABBITPUBLISHQUEUE, on_message_callback=consume, auto_ack=True)
+
+elasticData()
+sleep(3)
+cola.basic_publish(routing_key=RABBITCONSUMEQUEUE, body=json.dumps(document), exchange= '')
+cola2.start_consuming()
+
+

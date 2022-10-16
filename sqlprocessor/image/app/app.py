@@ -1,3 +1,4 @@
+from lib2to3.pgen2 import grammar
 from prometheus_client import Gauge,start_http_server
 from elasticsearch import Elasticsearch
 import elastic_transport
@@ -53,11 +54,12 @@ MARIADBPASS = "IteAgY6fBV" #os.getenv("MARIADBPASS")
 """
 # Enum for colors
 class bcolors:
-    OK      = '\033[92m'    #GREEN
-    WARNING = '\033[93m'    #YELLOW
-    FAIL    = '\033[91m'    #RED
-    GRAY    = '\033[90m'
-    RESET   = '\033[0m'     #RESET COLOR
+    PROCESSING  = '\33[96m'     #CYAN
+    OK          = '\033[92m'    #GREEN
+    WARNING     = '\033[93m'    #YELLOW
+    FAIL        = '\033[91m'    #RED
+    GRAY        = '\033[90m'    #GRAY
+    RESET       = '\033[0m'     #RESET COLOR
 
 # Class containing the programs logic
 class SQLProcessor:
@@ -265,7 +267,7 @@ class SQLProcessor:
                     )
                 )
                 result = cursor.fetchone()
-                if(len(result) != 0):
+                if(result is not None):
                     doc[fieldname] = result[0]
         except mariadb.ProgrammingError:
             # There is the possibility the expression fails, so we handle that error
@@ -282,20 +284,41 @@ class SQLProcessor:
 
     # Method used as callback for the consume
     def consume(self, ch, method, properties, msg):
+        
         startTime = time()
         message = json.loads(msg)
+        print(
+            bcolors.OK + "Message Receive: " + bcolors.RESET + "Starting Process -> " +
+            bcolors.GRAY + str(message) + bcolors.RESET
+        )
         if(self.getFromElastic(message)):
             ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
             return
+        print(
+            bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Group and Job found" +
+            bcolors.RESET
+        )
         if(self.getExpression()):
             ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
             return
+        print(
+            bcolors.PROCESSING + "Processing: " + bcolors.RESET + "expression obtained -> " +
+            bcolors.GRAY + str(self.__currentExpression) + bcolors.RESET
+        )
         if(self.processExpression()):
             ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
             return
+        print(
+            bcolors.PROCESSING + "Processing: " + bcolors.RESET + "expression variables proccesed -> " +
+            bcolors.GRAY + str(self.__currentExpression) + bcolors.RESET
+        )
         if(self.changeDocs()):
             ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
             return
+        print(
+            bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Docs changed and published" +
+            bcolors.RESET
+        )
         self.__publishQueue.basic_publish(routing_key=RABBITPUBLISHQUEUE, body=msg, exchange='')
         print(bcolors.OK + "Group finished:" + bcolors.RESET + " -> " + bcolors.GRAY + self.__currentDoc["group_id"] + bcolors.RESET)
 
