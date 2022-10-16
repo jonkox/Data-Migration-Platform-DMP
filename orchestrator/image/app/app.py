@@ -1,3 +1,4 @@
+from http.client import PROCESSING
 from math import ceil
 from time import sleep,time
 from elasticsearch import Elasticsearch
@@ -50,6 +51,15 @@ RABBITQUEUENAME = "orchestrator" #os.getenv("RABBITQUEUENAME")
 # MariaDB
 MARIADBNAME = "my_database" #os.getenv("MARIADBNAME")"""
 
+# Enum for colors
+class bcolors:
+    PROCESSING  = '\33[96m'     #CYAN
+    OK          = '\033[92m'    #GREEN
+    WARNING     = '\033[93m'    #YELLOW
+    FAIL        = '\033[91m'    #RED
+    GRAY        = '\033[90m'    #GRAY
+    RESET       = '\033[0m'     #RESET COLOR
+
 # Class containing all the orchestrator process
 class Orchestrator:
     __groupCount = 0
@@ -58,13 +68,13 @@ class Orchestrator:
     __mariaClient = None
     __jobDocument = None
     __jobDocumentId = None
+    __rabbitConnection = None
     __queue = None
     __time = 0
     __processGroups = 0
     __totalProcessingTime = None
     __avgProcessingTime = None
     __NumberOfProcessedGroups = None
-    __registry = None
     
     # First of all we want to connect to the elasticsearch job database
     # to wait for jobs
@@ -85,17 +95,17 @@ class Orchestrator:
         )
 
         self.__totalProcessingTime = Gauge(
-            'total_processing_time', 
+            'orchestrator_total_processing_time', 
             'Total amount of time elapsed when processing'
         )
 
         self.__avgProcessingTime = Gauge(
-            'avg_processing_time', 
+            'orchestrator_avg_processing_time', 
             'Average amount of time elapsed when processing'
         )
 
         self.__NumberOfProcessedGroups = Gauge(
-            'number_processed_groups', 
+            'orchestrator_number_processed_groups', 
             'Number of Jobs process by orchestrator'
         )
         
@@ -107,14 +117,15 @@ class Orchestrator:
     def initQueue(self):
         rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
         rabbitParameters = pika.ConnectionParameters(
-            heartbeat=120,
-            blocked_connection_timeout=120,
+            heartbeat=180,
+            blocked_connection_timeout=180,
             host=RABBITHOST,
             port=RABBITPORT,
-            credentials=rabbitUserPass
+            credentials=rabbitUserPass,
         )
         try:
-            self.__queue = pika.BlockingConnection(rabbitParameters).channel()
+            self.__rabbitConnection = pika.BlockingConnection(rabbitParameters)
+            self.__queue = self.__rabbitConnection.channel()
         except pika.exceptions.AMQPConnectionError:
             # We can't continue without a queue to publish our results
             raise Exception("Error: Couldn't connect to RabbitMQ")
@@ -165,24 +176,41 @@ class Orchestrator:
         # start metrics server
         start_http_server(6942)
 
-        print("process started")
-
         # Making sure pod stays up by providing a infinite loop
         while True:
             sleep(1) # To avoid to filling up elasticsearch with requests, we wait some time
 
+            # Keep pika connection alive by keeping heartbeats alive
+            self.__rabbitConnection.process_data_events()
+
             # Searching process for a new job
             search = self.__elasticClientJobs.search(index="jobs",size="1",query={"match" : {"status":"new"}})
             if(search["hits"]["hits"]):
+                print(
+                    bcolors.OK + "Job found on elastic: " + bcolors.RESET + "Starting Process " + bcolors.RESET
+                )
                 startingTime = time()
                 self.__jobDocumentId = search["hits"]["hits"][0]["_id"]
                 self.__jobDocument = self.__elasticClientJobs.get(index="jobs",id=self.__jobDocumentId)["_source"]
+                print(
+                    bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Job receive -> " + 
+                    bcolors.GRAY + self.__jobDocument["job_id"] + bcolors.RESET
+                )
                 self.__jobDocument["status"] = "In-process"
                 self.__elasticClientJobs.index(index="jobs",id=self.__jobDocumentId,document=self.__jobDocument)
+                print(
+                    bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Job Status updated -> " + 
+                    bcolors.GRAY + "In-process" + bcolors.RESET
+                )
                 if(self.getGroupCount() == True):
                     continue # we want to skip the next step some thing fails before it
-                self.createDocs()
+                
+                print(
+                    bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Group count Obtain -> " + 
+                    bcolors.GRAY + str(self.__groupCount) + bcolors.RESET
+                )
 
+                self.createDocs()
                 # Prometheus metrics
                 self.__time += (time() - startingTime)
                 self.__processGroups += 1
@@ -190,7 +218,9 @@ class Orchestrator:
                 self.__totalProcessingTime.set(self.__time)
                 self.__avgProcessingTime.set(self.__time/self.__processGroups)
 
-                print("Finished job -> " + self.__jobDocument["job_id"])
+                print(bcolors.OK + "Finished job:" + bcolors.RESET + " -> " + 
+                      bcolors.GRAY + self.__jobDocument["job_id"] + bcolors.RESET
+                    )
 
     # before creating any group document, we need to know 
     # the amount of groups/documents we want to create
@@ -200,8 +230,8 @@ class Orchestrator:
             self.__groupSize = int(self.__jobDocument["source"]["grp_size"])
         except TypeError:
             print(
-                "Error: root.source.gpr_size must be a number, document -> " \
-                + self.__jobDocument["job_id"]
+                bcolors.FAIL + "Error:" + bcolors.RESET + " root.source.gpr_size must be a number, document -> " \
+                + bcolors.WARNING + self.__jobDocument["job_id"] + bcolors.RESET
                 )
             self.failedFile()
             return True
@@ -214,8 +244,8 @@ class Orchestrator:
             cursor.execute(countingQuery)
         except mariadb.ProgrammingError:
             print(
-                "Error: root.source.expression is not working as it should, document -> " \
-                + self.__jobDocument["job_id"]
+                bcolors.FAIL + "Error:" + bcolors.RESET + " root.source.expression is not working as it should, document -> " \
+                + bcolors.WARNING + self.__jobDocument["job_id"] + bcolors.RESET
             )
             self.failedFile()
             return True
@@ -234,6 +264,10 @@ class Orchestrator:
             }
             self.__elasticClientJobs.index(index="groups",document=groupDocument)
             self.__queue.basic_publish(routing_key=RABBITQUEUENAME, body=json.dumps(groupDocument), exchange='')
+            print(
+                    bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Group created and published -> " + 
+                    bcolors.GRAY + str(groupDocument) + bcolors.RESET
+                )
 
     # This method is very simple, if we managed to get an error without the pod failing
     # we "mark" that job with a "Failed" status, so it is easier to identify bad jobs
