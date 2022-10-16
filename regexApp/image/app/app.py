@@ -118,8 +118,8 @@ class RegexProcessor:
         self.connectElastic(ELASTICUSER,ELASTICPASS,ELASTICHOST,ELASTICPORT)
         self.initQueues()
 
-        while True:
-            self.startProcess()
+        
+        self.startProcess()
 
     #Initialize queues, it creates source and destination queue to the processor
     def initQueues(self):

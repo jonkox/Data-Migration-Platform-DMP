@@ -135,14 +135,6 @@ class RegexProcessor:
         self.connectElastic(ELASTICUSER,ELASTICPASS,ELASTICHOST,ELASTICPORT)
         self.initQueues()
 
-
-        for i in range(2300):
-            doc = {
-            "job_id" : "nuevojob",
-            "group_id": "nuevojob-"+str(i),
-            }
-            self.CONSUMERQUEUE.basic_publish(routing_key=SOURCEQUEUE, body=json.dumps(doc), exchange='')
-
         while True:
             self.startProcess()
 
@@ -269,10 +261,14 @@ class RegexProcessor:
     #It also update metrics
     def consume(self, ch, method, properties, msg):
         try:
-            sleep(5) #If you want a change in timelapse, you need to change this value, it is in senconds
+            sleep(0) #If you want a change in timelapse, you need to change this value, it is in senconds
 
             startTime = time()      #taking initial time before processing start
             message = json.loads(msg)
+            message ={
+                "job_id" : message["job_id"],
+                "group_id": message["group_id"]
+            }
 
             print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Process Started [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
             print(f"El mensage recibido es {bcolors.OK}{message}{bcolors.OK}")
