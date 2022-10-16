@@ -139,4 +139,5 @@ createQueue()
 regexFinishedProcess()
 
 # 4. Initialize the Elasticsearch publisher app to start the process
+# Comment when testing deployment
 #createESpublisher()
