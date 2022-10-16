@@ -92,17 +92,17 @@ class RegexProcessor:
 
         #Initialize metrics variables
         self.TOTALTIME = Gauge(
-            'total_processing_time', 
+            'regex_total_processing_time', 
             'Total amount of time elapsed when processing'
         )
 
         self.AVGTIME = Gauge(
-            'avg_processing_time', 
+            'regex_avg_processing_time', 
             'Average amount of time elapsed when processing'
         )
 
         self.PROCESSEDGROUPS = Gauge(
-            'number_processed_groups', 
+            'regex_number_processed_groups', 
             'Number of Jobs process by REGEX Processor'
         )
         
