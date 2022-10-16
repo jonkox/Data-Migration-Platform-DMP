@@ -5,7 +5,7 @@ metadata:
   labels:
     app: espublisher
 spec:
-  replicas: 1
+  replicas: {{ .Values.espublisher.replicas }}
   selector:
     matchLabels:
       app: espublisher
@@ -19,11 +19,11 @@ spec:
         image: ihuskyx/espublisher
         env:
           - name: "ELASTICHOST"
-            value: {{ .Values.elasticsearchpublisher.elastichost }}
+            value: {{ .Values.general.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.elasticsearchpublisher.elasticport | toString }}
+            value: {{ .Values.general.elasticport | toString }}
           - name: "ELASTICUSER"
-            value: {{ .Values.elasticsearchpublisher.elasticuser }}
+            value: {{ .Values.general.elasticuser }}
           - name: "ELASTICPASS"
             valueFrom:
               secretKeyRef:
@@ -31,11 +31,11 @@ spec:
                 key: elasticsearch-password
                 optional: false
           - name: "RABBITHOST"
-            value: {{ .Values.elasticsearchpublisher.rabbithost }}
+            value: {{ .Values.general.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.elasticsearchpublisher.rabbitport }}
+            value: {{ .Values.general.rabbitport }}
           - name: "RABBITUSER"
-            value: {{ .Values.elasticsearchpublisher.rabbituser }}
+            value: {{ .Values.general.rabbituser }}
           - name: "RABBITPASS"
             valueFrom:
               secretKeyRef:
@@ -43,4 +43,4 @@ spec:
                 key: rabbitmq-password
                 optional: false
           - name: "RABBITQUEUENAME"
-            value: {{ .Values.elasticsearchpublisher.rabbitqueuename }}
+            value: {{ .Values.regexprocessor.rabbitqueuename }}

@@ -273,10 +273,10 @@ queue.queue_declare(queue=RABBITQUEUENAME)
 queue.basic_consume(queue=RABBITQUEUENAME, on_message_callback=consume, auto_ack=True)
 
 
-jobs = [job0,job1,job2]
+jobs = [job0]
 
 for job in jobs:
     elasticClient.index(index="jobs", document=job)
 
-queue.start_consuming()
+#queue.start_consuming()
 

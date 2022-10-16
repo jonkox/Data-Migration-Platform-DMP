@@ -5,7 +5,7 @@ metadata:
   labels:
     app: sql-proc
 spec:
-  replicas: 1
+  replicas: {{ .Values.sqlprocessor.replicas }}
   selector:
     matchLabels:
       app: sql-proc
@@ -22,11 +22,11 @@ spec:
             containerPort: 6941
         env:
           - name: "ELASTICHOST"
-            value: {{ .Values.SQLProcessor.elastichost }}
+            value: {{ .Values.general.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.SQLProcessor.elasticport }}
+            value: {{ .Values.general.elasticport }}
           - name: "ELASTICUSER"
-            value: {{ .Values.SQLProcessor.elasticuser }}
+            value: {{ .Values.general.elasticuser }}
           - name: "ELASTICPASS"
             valueFrom:
               secretKeyRef:
@@ -34,11 +34,11 @@ spec:
                 key: elasticsearch-password
                 optional: false
           - name: "RABBITHOST"
-            value: {{ .Values.SQLProcessor.rabbithost }}
+            value: {{ .Values.general.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.SQLProcessor.rabbitport }}
+            value: {{ .Values.general.rabbitport }}
           - name: "RABBITUSER"
-            value: {{ .Values.SQLProcessor.rabbituser }}
+            value: {{ .Values.general.rabbituser }}
           - name: "RABBITPASS"
             valueFrom:
               secretKeyRef:
@@ -46,17 +46,17 @@ spec:
                 key: rabbitmq-password
                 optional: false
           - name: "RABBITCONSUMEQUEUE"
-            value: {{ .Values.SQLProcessor.rabbitconsumequeue }}
+            value: {{ .Values.mysqlconnector.rabbitqueuename }}
           - name: "RABBITPUBLISHQUEUE"
-            value: {{ .Values.SQLProcessor.rabbitpublishqueue }}
+            value: {{ .Values.sqlprocessor.rabbitqueuename }}
           - name: "MARIADBNAME"
-            value: {{ .Values.SQLProcessor.mariadbname }}
+            value: {{ .Values.general.mariadbname }}
           - name: "MARIADBHOST"
-            value: {{ .Values.SQLProcessor.mariadbhost }}
+            value: {{ .Values.general.mariadbhost }}
           - name: "MARIADBPORT"
-            value: {{ .Values.SQLProcessor.mariadbport }}
+            value: {{ .Values.general.mariadbport }}
           - name: "MARIADBUSER"
-            value: {{ .Values.SQLProcessor.mariadbuser }}
+            value: {{ .Values.general.mariadbuser }}
           - name: "MARIADBPASS"
             valueFrom:
               secretKeyRef:

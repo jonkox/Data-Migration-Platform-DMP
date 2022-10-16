@@ -1,29 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysqlconnector
+  name: orchestrator
   labels:
-    app: MySQL
+    app: orchest
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: MySQL
+      app: orchest
   template:
     metadata:
       labels:
-        app: MySQL
+        app: orchest
     spec:
       containers:
-      - name: mysqlconnector
-        image: pamlez/mysqlconnector
+      - name: orchestrator
+        image: deansf/orchestrator
+        ports:
+          - name: metrics
+            containerPort: 6942
         env:
           - name: "ELASTICHOST"
-            value: {{ .Values.mysqlconnector.elastichost }}
+            value: {{ .Values.general.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.mysqlconnector.elasticport }}
+            value: {{ .Values.general.elasticport }}
           - name: "ELASTICUSER"
-            value: {{ .Values.mysqlconnector.elasticuser }}
+            value: {{ .Values.general.elasticuser }}
           - name: "ELASTICPASS"
             valueFrom:
               secretKeyRef:
@@ -31,11 +34,11 @@ spec:
                 key: elasticsearch-password
                 optional: false
           - name: "RABBITHOST"
-            value: {{ .Values.mysqlconnector.rabbithost }}
+            value: {{ .Values.general.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.mysqlconnector.rabbitport }}
+            value: {{ .Values.general.rabbitport }}
           - name: "RABBITUSER"
-            value: {{ .Values.mysqlconnector.rabbituser }}
+            value: {{ .Values.general.rabbituser }}
           - name: "RABBITPASS"
             valueFrom:
               secretKeyRef:
@@ -43,20 +46,19 @@ spec:
                 key: rabbitmq-password
                 optional: false
           - name: "RABBITQUEUENAME"
-            value: {{ .Values.mysqlconnector.rabbitqueuename }}
-          - name: "RABBITQUEUEMySQL"
-            value: {{ .Values.mysqlconnector.rabbitqueueMySQL }}
+            value: {{ .Values.orchestrator.rabbitqueuename }}
           - name: "MARIADBNAME"
-            value: {{ .Values.mysqlconnector.mariadbname }}
+            value: {{ .Values.general.mariadbname }}
           - name: "MARIADBHOST"
-            value: {{ .Values.mysqlconnector.mariadbhost }}
+            value: {{ .Values.general.mariadbhost }}
           - name: "MARIADBPORT"
-            value: {{ .Values.mysqlconnector.mariadbport }}
+            value: {{ .Values.general.mariadbport }}
           - name: "MARIADBUSER"
-            value: {{ .Values.mysqlconnector.mariadbuser }}
+            value: {{ .Values.general.mariadbuser }}
           - name: "MARIADBPASS"
             valueFrom:
               secretKeyRef:
                 name: databases-mariadb
                 key: mariadb-root-password
                 optional: false
+          

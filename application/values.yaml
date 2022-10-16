@@ -1,5 +1,5 @@
-regexProcessor:
-  # Elasticsearch
+general:
+  # Elastic
   elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
   elasticport: "\"9200\""
   elasticuser: "elastic"
@@ -8,33 +8,6 @@ regexProcessor:
   rabbithost: "monitoring-rabbitmq-headless"
   rabbitport: "\"5672\""
   rabbituser: "user"
-  sourcequeue: "regex_queue"
-  destqueue: "ready"
-  
-elasticsearchpublisher:
-  # Elasticsearch
-  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
-  elasticport: "\"9200\""
-  elasticuser: "elastic"
-
-  # RabbitMQ
-  rabbithost: "monitoring-rabbitmq-headless"
-  rabbitport: "\"5672\""
-  rabbituser: "user"
-  rabbitqueuename: "espublisher"
-
-mysqlconnector:
-  # Elasticsearch
-  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
-  elasticport: "\"9200\""
-  elasticuser: "elastic"
-
-  # RabbitMQ
-  rabbithost: "monitoring-rabbitmq-headless"
-  rabbitport: "\"5672\""
-  rabbituser: "user"
-  rabbitqueuename: "orchestrator"
-  rabbitqueueMySQL: "MySQLConnector"
 
   # Mariadb
   mariadbname: "my_database"
@@ -43,38 +16,26 @@ mysqlconnector:
   mariadbuser: "root"
 
 orchestrator:
-  # Elasticsearch
-  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
-  elasticport: "\"9200\""
-  elasticuser: "elastic"
-
-  # RabbitMQ
-  rabbithost: "monitoring-rabbitmq-headless"
-  rabbitport: "\"5672\""
-  rabbituser: "user"
   rabbitqueuename: "orchestrator"
 
-  # Mariadb
-  mariadbname: "my_database"
-  mariadbhost: "databases-mariadb-primary"
-  mariadbport: "\"3306\""
-  mariadbuser: "root"
+mysqlconnector:
+  replicas: 1
+  rabbitqueuename: "mysqlconnector"
 
-SQLProcessor:
-  # Elasticsearch
-  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
-  elasticport: "\"9200\""
-  elasticuser: "elastic"
+sqlprocessor:
+  replicas: 1
+  rabbitqueuename: "sqlprocessor"
 
-  # RabbitMQ
-  rabbithost: "monitoring-rabbitmq-headless"
-  rabbitport: "\"5672\""
-  rabbituser: "user"
-  rabbitconsumequeue: "mysqlconnector"
-  rabbitpublishqueue: "sqlprocessor"
+regexprocessor:
+  replicas: 1
+  rabbitqueuename: "regexprocessor"
 
-  # Mariadb
-  mariadbname: "my_database"
-  mariadbhost: "databases-mariadb-primary"
-  mariadbport: "\"3306\""
-  mariadbuser: "root"
+espublisher:
+  replicas: 1
+
+
+
+
+
+
+  

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: regex
 spec:
-  replicas: 1
+  replicas: {{ .Values.regexprocessor.replicas }}
   selector:
     matchLabels:
       app: regex
@@ -22,11 +22,11 @@ spec:
             containerPort: 6943
         env:
           - name: "ELASTICHOST"
-            value: {{ .Values.regexProcessor.elastichost }}
+            value: {{ .Values.general.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.regexProcessor.elasticport | toString }}
+            value: {{ .Values.general.elasticport | toString }}
           - name: "ELASTICUSER"
-            value: {{ .Values.regexProcessor.elasticuser }}
+            value: {{ .Values.general.elasticuser }}
           - name: "ELASTICPASS"
             valueFrom:
               secretKeyRef:
@@ -34,11 +34,11 @@ spec:
                 key: elasticsearch-password
                 optional: false
           - name: "RABBITHOST"
-            value: {{ .Values.regexProcessor.rabbithost }}
+            value: {{ .Values.general.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.regexProcessor.rabbitport }}
+            value: {{ .Values.general.rabbitport }}
           - name: "RABBITUSER"
-            value: {{ .Values.regexProcessor.rabbituser }}
+            value: {{ .Values.general.rabbituser }}
           - name: "RABBITPASS"
             valueFrom:
               secretKeyRef:
@@ -46,6 +46,6 @@ spec:
                 key: rabbitmq-password
                 optional: false
           - name: "SOURCEQUEUE"
-            value: {{ .Values.regexProcessor.sourcequeue }}
+            value: {{ .Values.sqlprocessor.rabbitqueuename }}
           - name: "DESTQUEUE"
-            value: {{ .Values.regexProcessor.destqueue }}
+            value: {{ .Values.regexprocessor.rabbitqueuename }}
