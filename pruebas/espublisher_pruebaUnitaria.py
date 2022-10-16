@@ -109,7 +109,7 @@ def regexFinishedProcess():
     # Simulation: Send message from "REGEX-PROCESSOR" to ES PUBLISHER APP
     channel.basic_publish(exchange='', routing_key=QUEUE_NAME, body=dataFromFile)
 
-    print(f"{bcolors.OK} Simulation: REGEX-PROCESSOR finished and sent message to publisher {bcolors.RESET}")
+    print(f"{bcolors.OK} Simulation: REGEX-PROCESSOR finished {bcolors.RESET}")
 
     connection.close()
 
