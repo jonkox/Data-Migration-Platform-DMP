@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: orchestrator-metrics
+  labels:
+    app: orchest
+spec:
+  endpoints:
+  - port: metrics
+  selector:
+    matchLabels:
+      app: orchest

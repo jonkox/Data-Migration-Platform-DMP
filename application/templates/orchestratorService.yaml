@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: orchestrator-metrics-service
+  labels:
+    app: orchest
+spec:
+  selector:
+    app: orchest
+  ports:
+  - name: metrics
+    port: 6942

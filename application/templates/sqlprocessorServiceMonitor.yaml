@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: sql-processor-metrics-monitor
+  labels:
+    app: sql-proc
+spec:
+  endpoints:
+  - port: metrics
+  selector:
+    matchLabels:
+      app: sql-proc

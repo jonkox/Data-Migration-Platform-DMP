@@ -41,3 +41,40 @@ mysqlconnector:
   mariadbhost: "databases-mariadb-primary"
   mariadbport: "\"3306\""
   mariadbuser: "root"
+
+orchestrator:
+  # Elasticsearch
+  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
+  elasticport: "\"9200\""
+  elasticuser: "elastic"
+
+  # RabbitMQ
+  rabbithost: "monitoring-rabbitmq-headless"
+  rabbitport: "\"5672\""
+  rabbituser: "user"
+  rabbitqueuename: "orchestrator"
+
+  # Mariadb
+  mariadbname: "my_database"
+  mariadbhost: "databases-mariadb-primary"
+  mariadbport: "\"3306\""
+  mariadbuser: "root"
+
+SQLProcessor:
+  # Elasticsearch
+  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
+  elasticport: "\"9200\""
+  elasticuser: "elastic"
+
+  # RabbitMQ
+  rabbithost: "monitoring-rabbitmq-headless"
+  rabbitport: "\"5672\""
+  rabbituser: "user"
+  rabbitconsumequeue: "mysqlconnector"
+  rabbitpublishqueue: "sqlprocessor"
+
+  # Mariadb
+  mariadbname: "my_database"
+  mariadbhost: "databases-mariadb-primary"
+  mariadbport: "\"3306\""
+  mariadbuser: "root"
