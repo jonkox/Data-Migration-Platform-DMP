@@ -22,3 +22,22 @@ elasticsearchpublisher:
   rabbitport: "\"5672\""
   rabbituser: "user"
   rabbitqueuename: "espublisher"
+
+mysqlconnector:
+  # Elasticsearch
+  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
+  elasticport: "\"9200\""
+  elasticuser: "elastic"
+
+  # RabbitMQ
+  rabbithost: "monitoring-rabbitmq-headless"
+  rabbitport: "\"5672\""
+  rabbituser: "user"
+  rabbitqueuename: "orchestrator"
+  rabbitqueueMySQL: "MySQLConnector"
+
+  # Mariadb
+  mariadbname: "my_database"
+  mariadbhost: "databases-mariadb-primary"
+  mariadbport: "\"3306\""
+  mariadbuser: "root"
