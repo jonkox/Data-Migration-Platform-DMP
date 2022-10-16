@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysqlconnector
+  labels:
+    app: MySQL
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: MySQL
+  template:
+    metadata:
+      labels:
+        app: MySQL
+    spec:
+      containers:
+      - name: mysqlconnector
+        image: pamlez/mysqlconnector
+        env:
+          - name: "ELASTICHOST"
+            value: {{ .Values.mysqlconnector.elastichost }}
+          - name: "ELASTICPORT"
+            value: {{ .Values.mysqlconnector.elasticport }}
+          - name: "ELASTICUSER"
+            value: {{ .Values.mysqlconnector.elasticuser }}
+          - name: "ELASTICPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-elasticsearch
+                key: elasticsearch-password
+                optional: false
+          - name: "RABBITHOST"
+            value: {{ .Values.mysqlconnector.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.mysqlconnector.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.mysqlconnector.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "RABBITQUEUENAME"
+            value: {{ .Values.mysqlconnector.rabbitqueuename }}
+          - name: "RABBITQUEUEMySQL"
+            value: {{ .Values.mysqlconnector.rabbitqueueMySQL }}
+          - name: "MARIADBNAME"
+            value: {{ .Values.mysqlconnector.mariadbname }}
+          - name: "MARIADBHOST"
+            value: {{ .Values.mysqlconnector.mariadbhost }}
+          - name: "MARIADBPORT"
+            value: {{ .Values.mysqlconnector.mariadbport }}
+          - name: "MARIADBUSER"
+            value: {{ .Values.mysqlconnector.mariadbuser }}
+          - name: "MARIADBPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-mariadb
+                key: mariadb-root-password
+                optional: false

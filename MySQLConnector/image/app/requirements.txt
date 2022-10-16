@@ -1,0 +1,4 @@
+mariadb
+elasticsearch
+prometheus-client
+pika

@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: mysql-metrics-service
+  labels:
+    app: MySQL
+spec:
+  selector:
+    app: MySQL
+  ports:
+  - name: metrics
+    port: 6945
