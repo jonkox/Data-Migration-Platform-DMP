@@ -260,7 +260,7 @@ class Orchestrator:
         for offset in range(0,self.__groupCount):
             groupDocument = {
                 "job_id" : self.__jobDocument["job_id"],
-                "groud_id" : self.__jobDocument["job_id"] + "-" + str(self.__groupSize*offset) 
+                "group_id" : self.__jobDocument["job_id"] + "-" + str(self.__groupSize*offset) 
             }
             self.__elasticClientJobs.index(index="groups",document=groupDocument)
             self.__queue.basic_publish(routing_key=RABBITQUEUENAME, body=json.dumps(groupDocument), exchange='')
