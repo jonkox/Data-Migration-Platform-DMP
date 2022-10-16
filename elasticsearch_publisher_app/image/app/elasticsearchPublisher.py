@@ -21,7 +21,7 @@ RABBITHOST = 'localhost'
 RABBITPORT = '30100'
 RABBITUSER = 'user'
 RABBITPASS = 'iX4rMustwltDPp7Y'
-RABBITQUEUENAME = 'ready'
+RABBITQUEUENAME = 'espublisher'
 """
 
 # Elasticsearch
