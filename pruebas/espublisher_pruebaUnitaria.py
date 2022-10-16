@@ -69,26 +69,6 @@ def kibanaPublishingSimulation():
     print(f"{bcolors.OK} Documents were successfully published to ES indices for testing {bcolors.RESET}")
 
 
-def createQueue():
-    # Create connection
-    rabbitUserPass = pika.PlainCredentials("user","iX4rMustwltDPp7Y")
-    rabbitConnectionParameters = pika.ConnectionParameters(
-            host='localhost', 
-            port='30100',
-            credentials=rabbitUserPass
-    )
-    connection = pika.BlockingConnection(rabbitConnectionParameters)
-    channel = connection.channel()
-
-    QUEUE_NAME = 'espublisher' 
-
-    channel.queue_declare(queue = QUEUE_NAME)
-
-    print(f"{bcolors.OK} Created Queue for testing {bcolors.RESET}")
-
-    connection.close()
-
-
 def regexFinishedProcess():
     rabbitUserPass = pika.PlainCredentials("user","iX4rMustwltDPp7Y")
     rabbitConnectionParameters = pika.ConnectionParameters(
@@ -124,20 +104,9 @@ def callback(ch, method, properties, body):
     process(ch, method)
 
 
-# def createESpublisher():
-#     esPublisher = ElasticsearchPublisher()
-
-
 # -------------------- UNIT TEST PROCESS -------------------
 # 1. Simulate when an user publishes a document in "jobs" index using Kibana
 kibanaPublishingSimulation()
 
-# 2. Simulate that the queue needed already exists 
-createQueue()
-
-# 3. Simulate that REGEX-PROCESSOR APP finished its job and sent message to the queue
+# 2. Simulate that REGEX-PROCESSOR APP finished its job and sent message to the queue
 regexFinishedProcess()
-
-# 4. Initialize the Elasticsearch publisher app to start the process
-# Comment when testing deployment
-#createESpublisher()
