@@ -1,5 +1,4 @@
-import sys
-from math import ceil
+from prometheus_client import Gauge, start_http_server
 from time import sleep,time
 from elasticsearch import Elasticsearch
 import elastic_transport
@@ -7,7 +6,6 @@ import mariadb
 import pika
 import json
 import os
-
 
 # Elasticsearch
 ELASTICHOST = os.getenv("ELASTICHOST")
@@ -41,9 +39,18 @@ class MySQLConnector:
     ElasticClient = None
     MariaClient = None
 
+    # Metrics
+    TIME_ = 0
+    PROCESSGROUPS_ = 0
+    TOTAL_TIME = None
+    AVG_TIME = None
+    NUMBER_PROCESSEDGROUPS = None
+
     def __init__(self):
+        self.startMetrics()
         self.connectDbElastic(ELASTICHOST,ELASTICPORT,ELASTICUSER,ELASTICPASS)
         self.startConsume(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUENAME)
+
 
     def connectDbElastic(self,pHost,pPort,pUser,pPass):
         try:
@@ -64,6 +71,29 @@ class MySQLConnector:
                     database= pName)
         except:
             print("Error: Couldn't connect to database Maria") 
+    
+    def startMetrics(self):
+        
+        self.TOTAL_TIME = Gauge(
+            'total_processing_time', 
+            'Total amount of time elapsed when processing'
+        )
+
+        self.AVG_TIME = Gauge(
+            'avg_processing_time', 
+            'Average amount of time elapsed when processing'
+        )
+
+        self.NUMBER_PROCESSEDGROUPS = Gauge(
+            'number_processed_groups', 
+            'Number of Jobs process by MySQLConnector'
+        )
+        
+        self.TOTAL_TIME.set(0)
+        self.AVG_TIME.set(0)
+        self.NUMBER_PROCESSEDGROUPS.set(0)
+
+        start_http_server(6945)
 
     def startConsume(self,pUser,pPass,pHost,pPort,pQueue):
         credentials_ = pika.PlainCredentials(pUser, pPass)
@@ -72,7 +102,7 @@ class MySQLConnector:
         channelConsuming = connection.channel()
         channelConsuming.queue_declare(queue=pQueue)
         channelConsuming.basic_consume(queue=pQueue, on_message_callback= self.callback, auto_ack=False)
-        
+
         channelConsuming.start_consuming()
 
     def startProduce(self,pUser,pPass,pHost,pPort,pQueue,pMsg):
@@ -85,14 +115,25 @@ class MySQLConnector:
         msg2 =pMsg
         channel2.basic_publish(exchange='', routing_key=RABBITQUEUEMYSQL, body=msg2) 
         connection2.close()
-        
+
     def callback (self, ch, method, properties, body):
-        sleep(1)   
+        sleep(1) #
         json_msg = json.loads(body)
+
+        startTime = time() 
+
         self.work(json_msg,body)
+
+        #Updating metrics
+        self.TIME_ += (time() - startTime)
+        self.PROCESSGROUPS_ += 1
+        self.NUMBER_PROCESSEDGROUPS.set(self.PROCESSGROUPS_)
+        self.TOTAL_TIME.set(self.TIME_)
+        self.AVG_TIME.set(self.TIME_/self.PROCESSGROUPS_)
 
         ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
         print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process finished")
+
 
     def work(self, pMsg, pBody):
         print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process started")
@@ -114,7 +155,7 @@ class MySQLConnector:
         self.update(documentUpdate,jobid,groupId,json_output)
         #___________________Publicamos en la segunda cola________________________
         self.startProduce(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUEMYSQL,pBody)
-        
+
     def update(self, pDoc, pJobId, pGrpId, pJson):
         try:
             idHit = pDoc["hits"]["hits"][0]["_id"]
@@ -122,7 +163,7 @@ class MySQLConnector:
             self.ElasticClient.index(index='groups', id=idHit,body=data) #Sobreescribo documento
         except:
             print("Error. Can't update")
-            
+
     def transformacion (self, query, args=(), one=False):
         self.connectDbMaria(MARIADBHOST,MARIADBPORT,MARIADBUSER,MARIADBPASS,MARIADBNAME) 
         try:
@@ -141,4 +182,4 @@ class MySQLConnector:
             control += 1
             if i == "-":
                 return control
-MySQLConnector()       
+MySQLConnector()     
