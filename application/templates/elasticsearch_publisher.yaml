@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearchpublisher
+  labels:
+    app: espublisher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: espublisher
+  template:
+    metadata:
+      labels:
+        app: espublisher
+    spec:
+      containers:
+      - name: elasticsearchpublisher
+        image: ihuskyx/espublisher
+        env:
+          - name: "ELASTICHOST"
+            value: {{ .Values.elasticsearchpublisher.elastichost }}
+          - name: "ELASTICPORT"
+            value: {{ .Values.elasticsearchpublisher.elasticport | toString }}
+          - name: "ELASTICUSER"
+            value: {{ .Values.elasticsearchpublisher.elasticuser }}
+          - name: "ELASTICPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-elasticsearch
+                key: elasticsearch-password
+                optional: false
+          - name: "RABBITHOST"
+            value: {{ .Values.elasticsearchpublisher.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.elasticsearchpublisher.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.elasticsearchpublisher.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "RABBITQUEUENAME"
+            value: {{ .Values.elasticsearchpublisher.rabbitqueuename }}

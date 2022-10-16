@@ -4,9 +4,14 @@ enableRabbit : true
 
 rabbitmq:
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
-      enabled: true
+      enabled: false
+  service: 
+    type: NodePort
+    nodePorts:
+      amqp: 30100
+      manager: 30150
 
 kube-prometheus:
   fullnameOverride: "main"

@@ -1,0 +1,11 @@
+elasticsearchpublisher:
+  # Elasticsearch
+  elastichost: "http://databases-elasticsearch-master-hl.default.svc.cluster.local"
+  elasticport: "\"9200\""
+  elasticuser: "elastic"
+
+  # RabbitMQ
+  rabbithost: "monitoring-rabbitmq-headless"
+  rabbitport: "\"5672\""
+  rabbituser: "user"
+  rabbitqueuename: "espublisher"

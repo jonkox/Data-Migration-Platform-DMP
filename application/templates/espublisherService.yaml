@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: espublisher-metrics-service
+  labels:
+    app: espublisher
+spec:
+  selector:
+    app: espublisher
+  ports:
+  - name: metrics
+    port: 6944
