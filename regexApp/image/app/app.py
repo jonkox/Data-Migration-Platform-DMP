@@ -46,7 +46,7 @@ ELASTICUSER         =   "elastic"
 RABBITHOST          =   "localhost"         #os.getenv("RABBITHOST")
 RABBITPORT          =   "30100"             #os.getenv("RABBITPORT")
 RABBITUSER          =   "user"              #os.getenv("RABBITUSER")
-RABBITPASS          =   "4VysVe8DAtHWUgit"  #os.getenv("RABBITPASS")
+RABBITPASS          =   "84qVWrA4Q7glKP14"  #os.getenv("RABBITPASS")
 RABBITQUEUENAME     =   "REGEX-FUENTE"      #os.getenv("RABBITQUEUENAME")
 SOURCEQUEUE         =   "regex_queue"       #Name of the queue that the application need to consume
 DESTQUEUE           =   "ready"             #Name of the queue that the application need to produce
@@ -56,7 +56,7 @@ DESTQUEUE           =   "ready"             #Name of the queue that the applicat
 # CLASSES
 #---------------------------------------------------------------------------------------------------------------------------------------------
 
-
+#This class was taken on: https://www.delftstack.com/es/howto/python/python-print-colored-text/ 
 class bcolors:
     OK      = '\033[92m'    #GREEN
     WARNING = '\033[93m'    #YELLOW
@@ -117,7 +117,9 @@ class RegexProcessor:
         #Initialize process
         self.connectElastic(ELASTICUSER,ELASTICPASS,ELASTICHOST,ELASTICPORT)
         self.initQueues()
-        self.startProcess()
+
+        while True:
+            self.startProcess()
 
     #Initialize queues, it creates source and destination queue to the processor
     def initQueues(self):
@@ -136,9 +138,9 @@ class RegexProcessor:
             self.CONSUMERQUEUE = pika.BlockingConnection(rabbitParameters).channel()
             self.PUBLISHQUEUE = pika.BlockingConnection(rabbitParameters).channel()
             self.CONSUMERQUEUE.basic_qos(prefetch_count=1)
-        except pika.exceptions.AMQPConnectionError:
+        except pika.exceptions.AMQPConnectionError as e:
             # We can't continue without a queue to publish our results
-            raise Exception("Error: Couldn't connect to RabbitMQ")
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
         
         #Creating queues
         self.CONSUMERQUEUE.queue_declare(queue=SOURCEQUEUE)
@@ -146,14 +148,15 @@ class RegexProcessor:
 
         self.CONSUMERQUEUE.basic_consume(queue=SOURCEQUEUE, on_message_callback=self.consume, auto_ack=False)
         
-
     # Simple method used to connect to an elasticsearch database
     def connectElastic(self,user,password,host,port):
         URL = f"{host}:{port}"
         try:
             self.ELASTICCLIENT = Elasticsearch(URL,basic_auth=(user,password))
-        except elastic_transport.ConnectionError:
-            raise Exception("Error: Couldn't connect to database")
+        except elastic_transport.ConnectionError as e:
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            return True
+        return False
     
     #Method to close connection to ElasticSearch
     def closeElastic(self):
@@ -161,49 +164,59 @@ class RegexProcessor:
 
     #Get Field Info takes all necessary info to the processor from the job that it's been processed
     def getFieldsInfo(self, jobId):
-        #Initial response it's the initial result from a query to ES
-        self.INITIALRESPONSE = self.ELASTICCLIENT.search(query={"bool": {"must": [{"match": {"_index": "jobs"}},{"match": {"job_id": jobId}}]}})
-        
+        try:
+            #Initial response it's the initial result from a query to ES
+            self.INITIALRESPONSE = self.ELASTICCLIENT.search(query={"bool": {"must": [{"match": {"_index": "jobs"}},{"match": {"job_id": jobId}}]}})
+            
 
-        self.JOB = self.INITIALRESPONSE["hits"]["hits"][0]["_source"]
-        self.SIZE = self.JOB["source"]["grp_size"]
+            self.JOB = self.INITIALRESPONSE["hits"]["hits"][0]["_source"]
+            self.SIZE = self.JOB["source"]["grp_size"]
 
-        for i in self.JOB["stages"]:
-            if i["name"] == "transform":#asks if it has some stage.transform
-                for j in i["transformation"]: #if it does, it takes the info from regex_transform
-                    if j["type"] == "regex_transform":
-                        self.NEWFIELD       = j["field_name"]
-                        self.FIELD          = j["regex_config"]["field"]
-                        self.REGEX          = j["regex_config"]["regex_expression"]
+            for i in self.JOB["stages"]:
+                if i["name"] == "transform":#asks if it has some stage.transform
+                    for j in i["transformation"]: #if it does, it takes the info from regex_transform
+                        if j["type"] == "regex_transform":
+                            self.NEWFIELD       = j["field_name"]
+                            self.FIELD          = j["regex_config"]["field"]
+                            self.REGEX          = j["regex_config"]["regex_expression"]
+        except Exception as e:
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            return True
+        return False
 
     #Transform makes all the transformation process
     def transform(self, groupId):
-        
-        #Search for the group given by parameter
-        query = self.ELASTICCLIENT.search(index="groups",size="1",query={"match" : {"group_id":groupId}})
-        query = query["hits"]["hits"][0]
-        self.DOCID = query["_id"]   #Takes it's ID and save to the moment when we need to re-write the document
+        try:
+            #Search for the group given by parameter
+            query = self.ELASTICCLIENT.search(index="groups",size="1",query={"match" : {"group_id":groupId}})
+            query = query["hits"]["hits"][0]
+            self.DOCID = query["_id"]   #Takes it's ID and save to the moment when we need to re-write the document
 
 
-        #Cycle to transform every doc in the group
-        dat = []
-        for j in range(int(self.SIZE)):
-            match = re.findall(self.REGEX,query["_source"]["docs"][j][self.FIELD])
-            if match:
-                dato = query["_source"]["docs"][j]
-                dato[self.NEWFIELD] = match[0]
-                dat.append(dato)
+            #Cycle to transform every doc in the group
+            dat = []
+            for j in range(int(self.SIZE)):
+                match = re.findall(self.REGEX,query["_source"]["docs"][j][self.FIELD])
+                if match:
+                    dato = query["_source"]["docs"][j]
+                    dato[self.NEWFIELD] = match[0]
+                    dat.append(dato)
 
-        #Create the new doc taking the info that comes and adding the new field
-        doc = {
-        "job_id" : query["_source"]["job_id"],
-        "group_id": query["_source"]["group_id"],
-        "docs": dat
-        }
+            #Create the new doc taking the info that comes and adding the new field
+            doc = {
+            "job_id" : query["_source"]["job_id"],
+            "group_id": query["_source"]["group_id"],
+            "docs": dat
+            }
 
-        #Write the new doc into ES
-        self.ELASTICCLIENT.index(index="groups", id=self.DOCID, document=doc)
-        print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Transformation Complete [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            #Write the new doc into ES
+            self.ELASTICCLIENT.index(index="groups", id=self.DOCID, document=doc)
+            print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Transformation Complete [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+        except Exception as e:
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            return True
+        return False
+
 
     #Publish to the queue the new message
     def produce(self, message):
@@ -212,30 +225,43 @@ class RegexProcessor:
     #Aux method, it's called by consuming process, it takes the message and sends to the processor to be processed
     #It also update metrics
     def consume(self, ch, method, properties, msg):
-        message = json.loads(msg)
+        try:
+            sleep(1)
 
-        print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Process Started [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            startTime = time()      #taking initial time before processing start
+            message = json.loads(msg)
 
-        sleep(1)
+            print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Process Started [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            
+            #Processing Process, before completing the process we check if everything was OK before
+            if(self.getFieldsInfo(message["job_id"])):
+                ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+                return
+            
+            if(self.transform(message["group_id"])):
+                ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+                return
 
-        startTime = time()      #taking initial time before processing start
+            if(self.produce(message)):
+                ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+                return
 
-        #Processing Process
-        self.getFieldsInfo(message["job_id"])
-        self.transform(message["group_id"])
-        self.produce(message)
-
-        #Updating metrics
-        self.TIME += (time() - startTime)
-        self.PROCESSGROUPS += 1
-        self.PROCESSEDGROUPS.set(self.PROCESSGROUPS)
-        self.TOTALTIME.set(self.TIME)
-        self.AVGTIME.set(self.TIME/self.PROCESSGROUPS)
-
+            #Updating metrics
         
-        print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Process Finished [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
-        ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+            self.TIME += (time() - startTime)
+            self.PROCESSGROUPS += 1
+            self.PROCESSEDGROUPS.set(self.PROCESSGROUPS)
+            self.TOTALTIME.set(self.TIME)
+            self.AVGTIME.set(self.TIME/self.PROCESSGROUPS)
 
+            
+            print(f"{bcolors.OK} REGEX PROCESSOR: {bcolors.RESET} Process Finished [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
+
+
+        except Exception as e:
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            return
 
     #Method that constantly checks queue waiting for new messages
     def startProcess(self):

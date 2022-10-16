@@ -1,5 +1,5 @@
-enableGrafana : true
-enablePrometheus : true
+enableGrafana : False
+enablePrometheus : False
 enableRabbit : true
 
 rabbitmq:
