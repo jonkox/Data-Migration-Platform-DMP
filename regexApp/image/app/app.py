@@ -170,7 +170,6 @@ class RegexProcessor:
             
 
             self.JOB = self.INITIALRESPONSE["hits"]["hits"][0]["_source"]
-            self.SIZE = self.JOB["source"]["grp_size"]
 
             for i in self.JOB["stages"]:
                 if i["name"] == "transform":#asks if it has some stage.transform
@@ -192,21 +191,19 @@ class RegexProcessor:
             query = query["hits"]["hits"][0]
             self.DOCID = query["_id"]   #Takes it's ID and save to the moment when we need to re-write the document
 
-
             #Cycle to transform every doc in the group
-            dat = []
-            for j in range(int(self.SIZE)):
-                match = re.findall(self.REGEX,query["_source"]["docs"][j][self.FIELD])
+            docs = []
+            for doc in query["_source"]["docs"]:
+                match = re.findall(self.REGEX,doc[self.FIELD])
                 if match:
-                    dato = query["_source"]["docs"][j]
-                    dato[self.NEWFIELD] = match[0]
-                    dat.append(dato)
+                    doc[self.NEWFIELD] = match[0]
+                    docs.append(doc)
 
             #Create the new doc taking the info that comes and adding the new field
             doc = {
-            "job_id" : query["_source"]["job_id"],
-            "group_id": query["_source"]["group_id"],
-            "docs": dat
+                "job_id" : query["_source"]["job_id"],
+                "group_id": query["_source"]["group_id"],
+                "docs": docs
             }
 
             #Write the new doc into ES
@@ -216,7 +213,6 @@ class RegexProcessor:
             print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
             return True
         return False
-
 
     #Publish to the queue the new message
     def produce(self, message):
