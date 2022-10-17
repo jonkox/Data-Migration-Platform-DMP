@@ -130,7 +130,6 @@ class Orchestrator:
             # We can't continue without a queue to publish our results
             raise Exception("Error: Couldn't connect to RabbitMQ")
         self.__queue.queue_declare(queue=RABBITQUEUENAME)
-            
 
     # Simple method used to connect to an elasticsearch database
     def connectElastic(self,user,password,host,port):
@@ -263,11 +262,20 @@ class Orchestrator:
                 "group_id" : self.__jobDocument["job_id"] + "-" + str(self.__groupSize*offset) 
             }
             self.__elasticClientJobs.index(index="groups",document=groupDocument)
-            self.__queue.basic_publish(routing_key=RABBITQUEUENAME, body=json.dumps(groupDocument), exchange='')
+            self.produce(groupDocument)
             print(
                     bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Group created and published -> " + 
                     bcolors.GRAY + str(groupDocument) + bcolors.RESET
                 )
+
+    #Publish to the queue the new message
+    def produce(self, message):
+        try:
+            self.__queue.basic_publish(routing_key=RABBITQUEUENAME, body=json.dumps(message), exchange='')
+        except pika.exceptions.StreamLostError:
+            print(f"{bcolors.FAIL} Error: {bcolors.RESET} connection lost, reconnecting... ")
+            self.initQueue()
+            self.produce(message)
 
     # This method is very simple, if we managed to get an error without the pod failing
     # we "mark" that job with a "Failed" status, so it is easier to identify bad jobs

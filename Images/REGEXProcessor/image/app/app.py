@@ -1,3 +1,4 @@
+from nis import cat
 from    elasticsearch       import      Elasticsearch
 from    time                import      sleep,time
 from    prometheus_client   import      Gauge,start_http_server
@@ -147,7 +148,26 @@ class RegexProcessor:
         self.PUBLISHQUEUE.queue_declare(queue=DESTQUEUE)
 
         self.CONSUMERQUEUE.basic_consume(queue=SOURCEQUEUE, on_message_callback=self.consume, auto_ack=False)
-        
+    
+    def reconnectPublishQueue(self):
+        #Creating parameters to rabbit
+        rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
+        rabbitParameters = pika.ConnectionParameters(
+            heartbeat=120,
+            blocked_connection_timeout=120,
+            host=RABBITHOST,
+            port=RABBITPORT,
+            credentials=rabbitUserPass
+        )
+        #Connecting to RABBITMQ
+        try:
+            self.PUBLISHQUEUE = pika.BlockingConnection(rabbitParameters).channel()
+        except pika.exceptions.AMQPConnectionError as e:
+            # We can't continue without a queue to publish our results
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} Couldn't connect to RabbitMQ [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+        #Creating queues
+        self.PUBLISHQUEUE.queue_declare(queue=DESTQUEUE)
+
     # Simple method used to connect to an elasticsearch database
     def connectElastic(self,user,password,host,port):
         URL = f"{host}:{port}"
@@ -216,7 +236,12 @@ class RegexProcessor:
 
     #Publish to the queue the new message
     def produce(self, message):
-        self.PUBLISHQUEUE.basic_publish(routing_key=DESTQUEUE, body=json.dumps(message), exchange='')
+        try:
+            self.PUBLISHQUEUE.basic_publish(routing_key=DESTQUEUE, body=json.dumps(message), exchange='')
+        except pika.exceptions.StreamLostError:
+            print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} connection lost, reconnecting... [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            self.reconnectPublishQueue()
+            self.produce(message)
     
     #Aux method, it's called by consuming process, it takes the message and sends to the processor to be processed
     #It also update metrics
@@ -257,6 +282,7 @@ class RegexProcessor:
 
         except Exception as e:
             print(f"{bcolors.FAIL} REGEX PROCESSOR: {bcolors.RESET} {e} [{str(datetime.today().strftime('%A, %B %d, %Y %H:%M:%S'))}]")
+            ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
             return
 
     #Method that constantly checks queue waiting for new messages
