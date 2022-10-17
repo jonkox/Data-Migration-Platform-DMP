@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: produce
+  labels:
+    app: produce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: produce
+  template:
+    metadata:
+      labels:
+        app: produce
+    spec:
+      containers:
+      - name: produce
+        image: pamlez/produce_demo
+        env:
+          - name: "ELASTICHOST"
+            value: {{ .Values.general.elastichost }}
+          - name: "ELASTICPORT"
+            value: {{ .Values.general.elasticport }}
+          - name: "ELASTICUSER"
+            value: {{ .Values.general.elasticuser }}
+          - name: "ELASTICPASS"
+            valueFrom:
+              secretKeyRef:
+                name: databases-elasticsearch
+                key: elasticsearch-password
+                optional: false
+          - name: "RABBITHOST"
+            value: {{ .Values.general.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.general.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.general.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "RABBITQUEUENAME"
+            value: {{ .Values.general.rabbitqueueP }}
