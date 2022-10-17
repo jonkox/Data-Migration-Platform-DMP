@@ -1,9 +1,6 @@
-from email import message
-from    time            import sleep
-from    tokenize        import group
 from    elasticsearch   import Elasticsearch
-import sys
-import  random
+import  sys
+import  os
 import  mariadb
 import  json
 import  pika
@@ -78,17 +75,13 @@ def dataset():
     if(not (elasticClient.indices.exists(index=["jobs"]))):
         elasticClient.indices.create(index="jobs")
     
-    with open("regexApp/test/ejemplo01.json") as archivo:
+    with open(os.path.join(os.path.dirname(__file__),"ejemplo01.json")) as archivo:
         datos = json.load(archivo)
 
     elasticClient.index(index="jobs", document=datos)
     
     if(not (elasticClient.indices.exists(index=["groups"]))):
         elasticClient.indices.create(index="groups")
-    
-    
-
-
 
     cur.execute(f"""SELECT p.cedula, p.nombre, p.id, p.provincia, c.description
                     FROM persona AS p

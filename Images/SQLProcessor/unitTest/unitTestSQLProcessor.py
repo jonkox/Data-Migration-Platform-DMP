@@ -1,5 +1,6 @@
 from time import sleep
 from elasticsearch import Elasticsearch
+import os
 import pika
 import json
 
@@ -50,81 +51,9 @@ def elasticData():
         ('2-6593-7388', 'Juan Carlos Alvarado', 10, 'Heredia')
     ]
 
-    job = {
-        "job_id" : "job0",
-        "status": "In-process",
-        "msg": "",
-        "data_sources": [
-            {
-                "type": "elasticsearch",
-                "name": "destination_es",
-                "url": "http://databases-elasticsearch-master-hl.default.svc.cluster.local",
-                "port": "9200",
-                "usuario": "elastic",
-                "password": "Av6gG4ZBIpBYgdeZ"
-            },
-            {
-                "type" : "mysql",
-                "name": "people_db",
-                "url": "databases-mariadb-primary",
-                "port": "3306",
-                "usuario": "root",
-                "password": "LVOIjwRfuU"
-            }
-        ],
-        "control_data_source": "destination_es",
-        "source": {
-            "data_source": "people_db",
-            "expression": "SELECT * FROM persona ORDER BY cedula",
-            "grp_size": "10"
-        },
-        "stages" : [
-            {
-                "name": "extract",
-                "source_queue": "extract",
-                "destination_queue": "%{transform->transformation->add_car}%"
-            },
-            {
-                "name": "transform",
-                "transformation": [
-                    {
-                        "name": "add_car",
-                        "type": "sql_transform",
-                        "table": "car",
-                        "expression": "SELECT %{field_description}% FROM %{table}% WHERE %{field_owner}% = %{doc_field}%",
-                        "source_data_source": "database_car",
-                        "destination_data_source": "destination_es",
-                        "doc_field": "id",
-                        "source_queue": "sql_queue",
-                        "destination_queue": "%{transform->transformation->myregex}%",
-                        "fields_mapping": {
-                            "field_description": "description",
-                            "field_owner": "owner"
-                        }
-                    },
-                    {
-                        "name": "myregex",
-                        "type": "regex_transform",
-                        "regex_config": {
-                            "regex_expression": "^.* ([a-zA-z]{3}-[0-9]{3}) .*$",
-                            "group": "1",
-                            "field": "description"
-                        },
-                        "field_name": "placa",
-                        "source_queue": "regex_queue",
-                        "destination_queue": "%{load}%"
-                    }
-                ]
-            },
-            {
-                "name": "load",
-                "source_queue": "ready",
-                "destination_data_source": "destination_es",
-                "index_name": "persona"
-            }
-        ]
-    }
-
+    with open(os.path.join(os.path.dirname(__file__),"ejemplo01.json")) as archivo:
+        job = json.load(archivo)
+    
     group = {
         "job_id" : "job0",
         "group_id" : "job0-0",

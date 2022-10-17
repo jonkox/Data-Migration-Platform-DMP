@@ -7,6 +7,12 @@ from random import randint
 import sys
 import os
 
+# MariaDB
+MARIADBNAME = "my_database"
+MARIADBHOST = "localhost"
+MARIADBPORT = 32100
+MARIADBUSER = "root"
+MARIADBPASS = "VFZs3RpO1X"
 
 # Global variables
 length = 1000
@@ -18,14 +24,13 @@ ids = []
 peopleData = []
 carData = []
 provincias = ["Alajuela", "Cartago", "San Jose", "Heredia", "Limon", "Puntarenas", "Guanacaste"]
-names = NameDataset()
+global names
+names = None
 
 """
 generate_plates: algorithm that generates random car plates
-Original code was taken from: https://www.geeksforgeeks.org/python-generate-random-string-of-given-length/
-
+Original code was taken in: https://www.geeksforgeeks.org/python-generate-random-string-of-given-length/
 """
-
 def generate_plates(quantity,large):
     number_of_strings = quantity
     length_of_string = large
@@ -92,15 +97,19 @@ def generateCarData():
 
 #Main function, connect to database and add random dataset to car and persona
 def dataset():
+    global names
+    if(names == None):
+        names = NameDataset()
+
     #Connect to mariadb
     try:
         conn = mariadb.connect(
-            user="root",
-            password="VFZs3RpO1X",
-            host="127.0.0.1",
-            port=32100,
-            database="my_database")
-
+            user=MARIADBUSER,
+            password=MARIADBPASS,
+            host=MARIADBHOST,
+            port=MARIADBPORT,
+            database=MARIADBNAME
+        )
         print("Connection succesfully")
     except mariadb.Error as e:
         print(f"Error connecting to MariaDB Platform: {e}")
@@ -163,6 +172,4 @@ def dataset():
     #Close connection
     conn.close()
 
-if __name__ == '__main__':
-    dataset()
 
