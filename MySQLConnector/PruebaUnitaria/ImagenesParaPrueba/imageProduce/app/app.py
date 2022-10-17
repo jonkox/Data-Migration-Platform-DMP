@@ -39,7 +39,8 @@ class Produce:
                 )
         except elastic_transport.ConnectionError:
             raise Exception ("Error: Couldn't connect to database Elastic")
-
+    # El objetivo de este componente es ver si MySQL consume de esta cola y ademas hace los cambios en el documento
+    # que se va a insertar en elastic para su modificacion
     def startProduce(self,pUser,pPass,pHost,pPort,pQueue):
         credentials2 = pika.PlainCredentials(pUser, pPass)
         parameters2 = pika.ConnectionParameters(host=pHost, port=pPort, credentials=credentials2) 
