@@ -44,7 +44,6 @@ class MySQLConnector:
         self.connectDbElastic(ELASTICHOST,ELASTICPORT,ELASTICUSER,ELASTICPASS)
         self.startConsume(RABBITUSER,RABBITPASS,RABBITHOST,RABBITPORT,RABBITQUEUENAME)
 
-
     def connectDbElastic(self,pHost,pPort,pUser,pPass):
         try:
             self.ElasticClient = Elasticsearch(
@@ -119,11 +118,7 @@ class MySQLConnector:
     def update(self, pDoc, pJobId, pGrpId, pJson):
         sleep(10)
         try:
-            #print("Match con el group id: ",pGrpId," resultado: ",pDoc)
             idHit = pDoc["hits"]["hits"][0]["_id"]
-            #print("idHit: ",idHit)
-           # print("json del query: ",pJson)
-            #print("job_id: ",pJobId," group_id: ",pGrpId)
             data = {"job_id": pJobId, "group_id": pGrpId, "docs":pJson} #Se annade del fiel docs
             self.ElasticClient.index(index='groups', id=idHit,document=data) #Sobreescribo documento
         except:
