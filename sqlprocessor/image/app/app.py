@@ -1,8 +1,8 @@
-from lib2to3.pgen2 import grammar
+from operator import truediv
 from prometheus_client import Gauge,start_http_server
 from elasticsearch import Elasticsearch
 import elastic_transport
-from time import time
+from time import time,sleep
 import re as Regex
 import mariadb
 import json
@@ -29,6 +29,10 @@ MARIADBHOST = os.getenv("MARIADBHOST")
 MARIADBPORT = os.getenv("MARIADBPORT")
 MARIADBUSER = os.getenv("MARIADBUSER")
 MARIADBPASS = os.getenv("MARIADBPASS")
+
+#SQLProcessor
+SQLPROCESSORRETRIES = os.getenv("SQLPROCESSORRETRIES")
+SQLPROCESSORTIMEOUT= os.getenv("SQLPROCESSORTIMEOUT")
 
 """
 # RabbitMQ
@@ -168,12 +172,24 @@ class SQLProcessor:
     # This method retrieves the job and group document from elastic with the
     # recieved job_id and group_id of the queue
     def getFromElastic(self,message):
+        success = False
         try:
             search = self.__elasticClient.search(index="jobs",size=1,query={"match" : {"job_id" : message["job_id"]}})
             self.__currentJob = search["hits"]["hits"][0]["_source"]
-            search = self.__elasticClient.search(index="groups",size=1,query={"match" : {"group_id" : message["group_id"]}})
-            self.__currentDoc = search["hits"]["hits"][0]["_source"]
-            self.__currentDocId = search["hits"]["hits"][0]["_id"]
+            for i in range(int(SQLPROCESSORRETRIES)):
+                search = self.__elasticClient.search(index="groups",size=1,query={"match" : {"group_id" : message["group_id"]}})
+                self.__currentDoc = search["hits"]["hits"][0]["_source"]
+                self.__currentDocId = search["hits"]["hits"][0]["_id"]
+                if("docs" in self.__currentDoc):
+                    success = True
+                    break
+                sleep(int(SQLPROCESSORTIMEOUT))
+            if(not success):
+                print(
+                    bcolors.FAIL + "Error:" + bcolors.RESET + " Group doesn't have docs in it -> " + bcolors.WARNING + "group_id:" + 
+                    message["group_id"] + bcolors.RESET
+                )
+                return True
         except IndexError:
             # if we don't find any document, we can't continue
             print(

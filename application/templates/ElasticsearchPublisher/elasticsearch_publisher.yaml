@@ -21,7 +21,7 @@ spec:
           - name: "ELASTICHOST"
             value: {{ .Values.general.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.general.elasticport | toString }}
+            value: {{ .Values.general.elasticport | quote }}
           - name: "ELASTICUSER"
             value: {{ .Values.general.elasticuser }}
           - name: "ELASTICPASS"
@@ -33,7 +33,7 @@ spec:
           - name: "RABBITHOST"
             value: {{ .Values.general.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.general.rabbitport }}
+            value: {{ .Values.general.rabbitport | quote }}
           - name: "RABBITUSER"
             value: {{ .Values.general.rabbituser }}
           - name: "RABBITPASS"

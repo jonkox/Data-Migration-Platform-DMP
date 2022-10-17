@@ -24,7 +24,7 @@ spec:
           - name: "ELASTICHOST"
             value: {{ .Values.general.elastichost }}
           - name: "ELASTICPORT"
-            value: {{ .Values.general.elasticport }}
+            value: {{ .Values.general.elasticport | quote }}
           - name: "ELASTICUSER"
             value: {{ .Values.general.elasticuser }}
           - name: "ELASTICPASS"
@@ -36,7 +36,7 @@ spec:
           - name: "RABBITHOST"
             value: {{ .Values.general.rabbithost }}
           - name: "RABBITPORT"
-            value: {{ .Values.general.rabbitport }}
+            value: {{ .Values.general.rabbitport | quote }}
           - name: "RABBITUSER"
             value: {{ .Values.general.rabbituser }}
           - name: "RABBITPASS"
@@ -52,7 +52,7 @@ spec:
           - name: "MARIADBHOST"
             value: {{ .Values.general.mariadbhost }}
           - name: "MARIADBPORT"
-            value: {{ .Values.general.mariadbport }}
+            value: {{ .Values.general.mariadbport | quote }}
           - name: "MARIADBUSER"
             value: {{ .Values.general.mariadbuser }}
           - name: "MARIADBPASS"

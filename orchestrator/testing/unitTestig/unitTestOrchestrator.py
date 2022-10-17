@@ -6,12 +6,12 @@ from elasticsearch import Elasticsearch
 ELASTICHOST = "localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICUSER = "elastic"
-ELASTICPASS = "5WKt5ymymHVmJsxQ" #os.getenv("ELASTICPASS")
+ELASTICPASS = "vLjjh9ojWfyn4FNq" #os.getenv("ELASTICPASS")
 
 RABBITHOST = "localhost" 
 RABBITPORT = "30100" 
 RABBITUSER = "user" 
-RABBITPASS = "XQnpNkb23Z5RqAly"
+RABBITPASS = "64iBHzjtzmxs2ZPv"
 RABBITQUEUENAME = "orchestrator"
 
 global message_number
@@ -27,9 +27,9 @@ def consume(ch, method, properties, msg):
 
 elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=(ELASTICUSER,ELASTICPASS))
 
-if((elasticClient.indices.exists(index=["jobs"]))):
-    elasticClient.indices.delete(index="jobs")
-elasticClient.indices.create(index="jobs")
+"""if((elasticClient.indices.exists(index=["jobs"]))):
+    elasticClient.indices.delete(index="jobs")"""
+#elasticClient.indices.create(index="jobs")
 
 job0 = {
     "job_id": "job0",
@@ -270,10 +270,10 @@ except pika.exceptions.AMQPConnectionError:
     # We can't continue without a queue to publish our results
     raise Exception("Error: Couldn't connect to RabbitMQ")
 queue.queue_declare(queue=RABBITQUEUENAME)
-queue.basic_consume(queue=RABBITQUEUENAME, on_message_callback=consume, auto_ack=True)
+#queue.basic_consume(queue=RABBITQUEUENAME, on_message_callback=consume, auto_ack=True)
 
 
-jobs = [job0]
+jobs = [job1]
 
 for job in jobs:
     elasticClient.index(index="jobs", document=job)

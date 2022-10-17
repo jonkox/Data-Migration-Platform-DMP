@@ -4,7 +4,7 @@ enableRabbit : true
 
 rabbitmq:
   metrics:
-    enabled: false
+    enabled: true
     serviceMonitor:
       enabled: true
   service: 
@@ -12,9 +12,69 @@ rabbitmq:
     nodePorts:
       amqp: 30100
       manager: 30150
+  resources:
+      limits: 
+        cpu: 750m
+        memory: 768Mi
+      requests:
+        cpu: 25m
+        memory: 128Mi
 
 kube-prometheus:
   fullnameOverride: "main"
+
+  prometheus:
+    resources:
+      limits: 
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+  operator:
+    resources:
+      limits: 
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+  alertmanager:
+    resources:
+      limits: 
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+  blackboxExporter:
+    resources:
+      limits: 
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  
+  node-exporter:
+    resources:
+      limits: 
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+  kube-state-metrics:
+    resources:
+      limits: 
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
 grafana:
   datasources:
@@ -28,3 +88,13 @@ grafana:
         isDefault: true
   admin:
     password: "11111111"
+  
+  grafana:
+    replicaCount: 1
+    resources:
+      limits: 
+        cpu: 750m
+        memory: 768Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi

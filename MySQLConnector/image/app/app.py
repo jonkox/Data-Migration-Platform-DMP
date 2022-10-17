@@ -116,6 +116,7 @@ class MySQLConnector:
         parameters = pika.ConnectionParameters(host=pHost, port=pPort, credentials=credentials_)
         connection = pika.BlockingConnection(parameters)
         channelConsuming = connection.channel()
+        channelConsuming.basic_qos(prefetch_count=1)
         channelConsuming.queue_declare(queue=pQueue)
         channelConsuming.basic_consume(queue=pQueue, on_message_callback= self.callback, auto_ack=False)
 
@@ -166,7 +167,7 @@ class MySQLConnector:
         json_job = self.ElasticClient.search(index='jobs',size=1,query={"match":{"job_id":pMsg["job_id"]}})
         idDocumento = json_job["hits"]["hits"][0]["_id"] 
         loadJson = self.ElasticClient.get(index="jobs", id=idDocumento)["_source"]
-        groupId=pMsg["groud_id"] 
+        groupId=pMsg["group_id"] 
         jobid = pMsg["job_id"]   
         
         #---------> Data to make the query, we get it from the loaded document
@@ -176,8 +177,8 @@ class MySQLConnector:
         query = expresion+" LIMIT "+startRow+","+groupSize #Final query
         
         #---------> In this part, the final query is made to MariaDB and once the result is transformed into a list
-        json_output = json.dumps(self.transformacion (query, (groupSize,)))
-        documentUpdate = self.ElasticClient.search(index='groups',size=1,query={"match":{"groud_id":groupId}})
+        json_output = self.transformacion (query, (groupSize,))
+        documentUpdate = self.ElasticClient.search(index='groups',size=1,query={"match":{"group_id":groupId}})
         
         #---------> Update to elastic
         self.update(documentUpdate,jobid,groupId,json_output)
@@ -188,16 +189,16 @@ class MySQLConnector:
     def update(self, pDoc, pJobId, pGrpId, pJson):
         try:
             idHit = pDoc["hits"]["hits"][0]["_id"]
-            data = {"job_id": pJobId, "group_id": pGrpId, 'docs':pJson} #Added fiel docs
+            data = {"job_id": pJobId, "group_id": pGrpId, 'docs': pJson} #Added fiel docs
             self.ElasticClient.index(index='groups', id=idHit,body=data) #Overwrite document
-        except:
-            print("Error. Can't update")
+        except Exception as e:
+            print("Error. Can't update " + str(e))
             
     #----------------------------------------------------------------------- 
     # This function connects to MariaDb, makes the query and transforms that query to a list of type key : value
     # Return that transformation
     #----------------------------------------------------------------------- 
-    def transformacion (self, query, args=(), one=False):
+    def transformacion(self, query, args=(), one=False):
         self.connectDbMaria(MARIADBHOST,MARIADBPORT,MARIADBUSER,MARIADBPASS,MARIADBNAME) 
         try:
             cur = self.MariaClient.cursor()

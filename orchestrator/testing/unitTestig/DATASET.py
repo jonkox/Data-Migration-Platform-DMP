@@ -96,7 +96,7 @@ def dataset():
     try:
         conn = mariadb.connect(
             user="root",
-            password="IteAgY6fBV",
+            password="VFZs3RpO1X",
             host="127.0.0.1",
             port=32100,
             database="my_database")

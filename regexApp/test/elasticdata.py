@@ -2,6 +2,7 @@ from email import message
 from    time            import sleep
 from    tokenize        import group
 from    elasticsearch   import Elasticsearch
+import sys
 import  random
 import  mariadb
 import  json
@@ -15,8 +16,8 @@ ELASTICPASS         = ""
 RABBITHOST          = "localhost"
 RABBITPORT          = "30100"
 RABBITUSER          = "user"
-RABBITPASS          = "84qVWrA4Q7glKP14"
-RABBITQUEUENAME     = "regex_queue"
+RABBITPASS          = "64iBHzjtzmxs2ZPv"
+RABBITQUEUENAME     = "sqlprocessor"
 
 docs                = []
 
@@ -44,13 +45,13 @@ def dataset():
         # We can't continue without a queue to publish our results
         raise Exception("Error: Couldn't connect to RabbitMQ")
     __queue.queue_declare(queue=RABBITQUEUENAME)
-    __queue.queue_declare(queue="ready")
+    __queue.queue_declare(queue="regexprocessor")
 
 
     #----------------------------
     # ElasticSearch Connection
     #----------------------------
-    elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic","RYcgQ5MSpmjeRcjj"))
+    elasticClient = Elasticsearch("http://"+ELASTICHOST+":"+ELASTICPORT, basic_auth=("elastic","vLjjh9ojWfyn4FNq"))
 
 
     #----------------------------
@@ -59,7 +60,7 @@ def dataset():
     try:
         conn = mariadb.connect(
             user="root",
-            password="iy5PtSwCIo",
+            password="VFZs3RpO1X",
             host="127.0.0.1",
             port=32100,
             database="my_database")
