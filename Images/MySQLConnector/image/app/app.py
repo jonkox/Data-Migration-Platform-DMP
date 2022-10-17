@@ -88,17 +88,17 @@ class MySQLConnector:
     #----------------------------------------------------------------------- 
     def startMetrics(self):    
         self.TOTAL_TIME = Gauge(
-            'total_processing_time', 
+            'mysqlconnector_total_processing_time', 
             'Total amount of time elapsed when processing'
         )
 
         self.AVG_TIME = Gauge(
-            'avg_processing_time', 
+            'mysqlconnector_avg_processing_time', 
             'Average amount of time elapsed when processing'
         )
 
         self.NUMBER_PROCESSEDGROUPS = Gauge(
-            'number_processed_groups', 
+            'mysqlconnector_number_processed_groups', 
             'Number of Jobs process by MySQLConnector'
         )
         
