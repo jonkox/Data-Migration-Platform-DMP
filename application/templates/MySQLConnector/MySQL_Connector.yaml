@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mysqlconnector
-        image: deansf/mysqlconnector
+        image: pamlez/mysqlconnector
         env:
           - name: "ELASTICHOST"
             value: {{ .Values.general.elastichost }}

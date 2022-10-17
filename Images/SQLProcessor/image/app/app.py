@@ -151,6 +151,25 @@ class SQLProcessor:
 
         self.__consumerQueue.basic_consume(queue=RABBITCONSUMEQUEUE, on_message_callback=self.consume, auto_ack=False)
 
+    def reconnectPublishQueue(self):
+        #Creating parameters to rabbit
+        rabbitUserPass = pika.PlainCredentials(RABBITUSER,RABBITPASS)
+        rabbitParameters = pika.ConnectionParameters(
+            heartbeat=120,
+            blocked_connection_timeout=120,
+            host=RABBITHOST,
+            port=RABBITPORT,
+            credentials=rabbitUserPass
+        )
+        #Connecting to RABBITMQ
+        try:
+            self.__publishQueue = pika.BlockingConnection(rabbitParameters).channel()
+        except pika.exceptions.AMQPConnectionError as e:
+            # We can't continue without a queue to publish our results
+            print(f"{bcolors.FAIL} Error: {bcolors.RESET} Couldn't connect to RabbitMQ")
+        #Creating queues
+        self.__publishQueue.queue_declare(queue=RABBITPUBLISHQUEUE)
+
     # Method to initialize Prometheus metrics
     def initMetrics(self):
         self.__totalTimeMetric = Gauge(
@@ -298,6 +317,15 @@ class SQLProcessor:
         self.__elasticClient.index(index="groups",id=self.__currentDocId,document=self.__currentDoc)
         return False
 
+    #Publish to the queue the new message
+    def produce(self, message):
+        try:
+            self.__publishQueue.basic_publish(routing_key=RABBITPUBLISHQUEUE, body=message, exchange='')
+        except pika.exceptions.StreamLostError:
+            print(f"{bcolors.FAIL} Error: {bcolors.RESET} connection lost, reconnecting... ")
+            self.reconnectPublishQueue()
+            self.produce(message)
+
     # Method used as callback for the consume
     def consume(self, ch, method, properties, msg):
         
@@ -335,7 +363,7 @@ class SQLProcessor:
             bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Docs changed and published" +
             bcolors.RESET
         )
-        self.__publishQueue.basic_publish(routing_key=RABBITPUBLISHQUEUE, body=msg, exchange='')
+        self.produce(msg)
         print(bcolors.OK + "Group finished:" + bcolors.RESET + " -> " + bcolors.GRAY + self.__currentDoc["group_id"] + bcolors.RESET)
 
         self.__time += (time() - startTime)

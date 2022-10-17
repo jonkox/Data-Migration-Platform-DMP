@@ -212,8 +212,6 @@ class Orchestrator:
                 self.createDocs()
                 # Prometheus metrics
                 self.__time += (time() - startingTime)
-                self.__processGroups += 1
-                self.__NumberOfProcessedGroups.set(self.__processGroups)
                 self.__totalProcessingTime.set(self.__time)
                 self.__avgProcessingTime.set(self.__time/self.__processGroups)
 
@@ -263,6 +261,8 @@ class Orchestrator:
             }
             self.__elasticClientJobs.index(index="groups",document=groupDocument)
             self.produce(groupDocument)
+            self.__processGroups += 1
+            self.__NumberOfProcessedGroups.set(self.__processGroups)
             print(
                     bcolors.PROCESSING + "Processing: " + bcolors.RESET + "Group created and published -> " + 
                     bcolors.GRAY + str(groupDocument) + bcolors.RESET
