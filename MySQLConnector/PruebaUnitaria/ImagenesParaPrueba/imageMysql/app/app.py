@@ -66,14 +66,12 @@ class MySQLConnector:
             print("Error: Couldn't connect to database Maria") 
 
     def startConsume(self,pUser,pPass,pHost,pPort,pQueue):
-        #print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Consumiendo")
         credentials_ = pika.PlainCredentials(pUser, pPass)
         parameters = pika.ConnectionParameters(host=pHost, port=pPort, credentials=credentials_)
         connection = pika.BlockingConnection(parameters)
         channelConsuming = connection.channel()
         channelConsuming.queue_declare(queue=RABBITQUEUENAME)
         channelConsuming.basic_consume(queue=RABBITQUEUENAME, on_message_callback= self.callback, auto_ack=True)
-        #print('Waiting for messages.')
         channelConsuming.start_consuming()
 
     def startProduce(self,pUser,pPass,pHost,pPort,pQueue,pMsg):
@@ -93,12 +91,7 @@ class MySQLConnector:
         json_msg = json.loads(body)
         self.work(json_msg,body)
 
-        #ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
-        #print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process finished")
-
-
     def work(self, pMsg, pBody):
-        #print(f"{bcolors.OK} MySQL Connector: {bcolors.RESET} Process started: ", pBody)
         try:
             json_job = self.ElasticClient.search(index='jobs',size=1,query={"match":{"job_id":pMsg["job_id"]}}) 
             idDocumento = json_job["hits"]["hits"][0]["_id"] 
@@ -110,7 +103,6 @@ class MySQLConnector:
             jobid = pMsg["job_id"]    
         except:
             print("Error obteniendo el group_id o el jobid")
-    
         #_____________________Datos para hacer consulta_______________________
         expresion = loadJson["source"]["expression"] #El select que debe ejecutar en la base de datos    
         groupSize = loadJson["source"]["grp_size"]  
