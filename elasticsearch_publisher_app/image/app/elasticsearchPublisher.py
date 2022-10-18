@@ -9,9 +9,9 @@ from time import sleep,time
 
 # ------------ ENVIRONMENT  VARIABLES FOR CONNECTIONS -------
 
-""""
-# Used for testing without environment variables
 
+# Used for testing without environment variables
+"""
 ELASTICHOST = "http://localhost"#os.getenv("ELASTICHOST")
 ELASTICPORT = "32500"#os.getenv("ELASTICPORT")
 ELASTICUSER = "elastic" #os.getenv("ELASTICUSER")
@@ -21,7 +21,7 @@ RABBITHOST = 'localhost'
 RABBITPORT = '30100'
 RABBITUSER = 'user'
 RABBITPASS = 'iX4rMustwltDPp7Y'
-RABBITQUEUENAME = 'ready'
+RABBITQUEUENAME = 'espublisher'
 """
 
 # Elasticsearch
@@ -118,6 +118,12 @@ class ElasticsearchPublisher:
         return searchResult["hits"]["hits"][0]["_source"]
 
 
+    def searchAutoId(self, groupId):
+        searchResult = self.ESConnection.search(index="groups",size=1,query={"match" : {"group_id" : groupId}})
+        print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Auto-Generated ID search in 'groups' index was successful")
+        return searchResult["hits"]["hits"][0]["_id"]
+
+
     def workForPod(self, jsonObject):
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Process started")
 
@@ -159,7 +165,8 @@ class ElasticsearchPublisher:
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Documents were successfully published")
         
         # ----------- DELETE DOCUMENT FROM INDEX 'GROUPS' ---------------
-        deleteDocResult = self.ESConnection.delete(index="groups", id= group_id)
+        autoId = self.searchAutoId(group_id)
+        deleteDocResult = self.ESConnection.delete(index="groups", id= autoId)
 
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Document was successfully deleted from index")
 
