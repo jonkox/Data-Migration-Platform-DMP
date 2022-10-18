@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumedemysql
+  labels:
+    app: consume
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consume
+  template:
+    metadata:
+      labels:
+        app: consume
+    spec:
+      containers:
+      - name: consumedemysql
+        image: pamlez/consume_demo
+        env:
+          - name: "RABBITHOST"
+            value: {{ .Values.general.rabbithost }}
+          - name: "RABBITPORT"
+            value: {{ .Values.general.rabbitport }}
+          - name: "RABBITUSER"
+            value: {{ .Values.general.rabbituser }}
+          - name: "RABBITPASS"
+            valueFrom:
+              secretKeyRef:
+                name: monitoring-rabbitmq
+                key: rabbitmq-password
+                optional: false
+          - name: "RABBITQUEUENAME"
+            value: {{ .Values.general.rabbitqueueP }}
+          - name: "RABBITQUEUEMySQL"
+            value: {{ .Values.general.rabbitqueueMySQL }}
