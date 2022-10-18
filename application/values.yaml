@@ -19,21 +19,21 @@ orchestrator:
   rabbitqueuename: "orchestrator"
 
 mysqlconnector:
-  replicas: 1
+  replicas: 3
   rabbitqueuename: "mysqlconnector"
 
 sqlprocessor:
-  replicas: 1
+  replicas: 3
   rabbitqueuename: "sqlprocessor"
   retries: 5
   timeout: 5
 
 regexprocessor:
-  replicas: 1
+  replicas: 3
   rabbitqueuename: "regexprocessor"
 
 espublisher:
-  replicas: 1
+  replicas: 3
 
 
 

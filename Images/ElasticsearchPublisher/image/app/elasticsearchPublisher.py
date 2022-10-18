@@ -5,8 +5,8 @@ import os
 
 from elasticsearch import Elasticsearch
 from prometheus_client import Gauge, start_http_server
-from time import sleep,time
-
+from time import time
+from time import sleep as tatekieto
 # ------------ ENVIRONMENT  VARIABLES FOR CONNECTIONS -------
 
 
@@ -126,7 +126,7 @@ class ElasticsearchPublisher:
 
     def workForPod(self, jsonObject):
         print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Process started")
-
+        tatekieto(1) # sleep(1) alias used for easteregg 
         # Start timer for metrics
         startingTime = time()
 
@@ -183,7 +183,7 @@ class ElasticsearchPublisher:
     
         json_object = json.loads(body)
 
-        if self.workForPod(json_object):
+        if(self.workForPod(json_object)):
             # This notifies that the message was received succesfully
             ch.basic_ack(delivery_tag=method.delivery_tag, multiple=False)
             print(f"{bcolors.OK} ES Publisher: {bcolors.RESET} Process finished")
@@ -196,20 +196,22 @@ class ElasticsearchPublisher:
         rabbitUserPass = pika.PlainCredentials(user, password)
 
         rabbitConnectionParameters = pika.ConnectionParameters(
+            heartbeat=120,
+            blocked_connection_timeout=120,
             host= host, 
             port= port,
             credentials= rabbitUserPass
         )
-
         try:
             connection = pika.BlockingConnection(rabbitConnectionParameters)
             channel = connection.channel()
             channel.basic_qos(prefetch_count=1)
-            channel.queue_declare(queue = RABBITQUEUENAME)
+            
         except pika.exceptions.AMQPConnectionError:
             raise Exception("Error: Couldn't connect to RabbitMQ")
 
-        channel.basic_consume(queue= RABBITQUEUENAME, auto_ack=False, on_message_callback=self.callback)
+        channel.queue_declare(queue=RABBITQUEUENAME)
+        channel.basic_consume(queue=RABBITQUEUENAME, on_message_callback=self.callback, auto_ack=False)
         channel.start_consuming()
 
 
