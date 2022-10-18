@@ -1,5 +1,3 @@
-# Data-Migration-Platform-DMP
-
 # Proyecto Data Migrations Platform
     Instituto Tecnológico de Costa Rica
     Escuela de Ingeniería en Computación 
@@ -124,7 +122,7 @@ Para poder crear un servicio de tipo NodePort se tienen dos opciones, crear un s
 
 Esto se ve de la siguiente manera dentro del values del Helm Chart databases:
 
-```yaml!
+```yaml
 kibana:
   service:
     type: NodePort
