@@ -217,7 +217,7 @@ class RegexProcessor:
                 match = re.findall(self.REGEX,doc[self.FIELD])
                 if match:
                     doc[self.NEWFIELD] = match[0]
-                    docs.append(doc)
+                docs.append(doc)
 
             #Create the new doc taking the info that comes and adding the new field
             doc = {
